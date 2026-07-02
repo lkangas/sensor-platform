@@ -26,6 +26,9 @@ services:
     restart: unless-stopped
     ports:
       - "8883:8883"          # MQTT over TLS (edge sites); 1883 stays internal
+    logging:
+      driver: journald       # fail2ban reads auth failures from the journal
+                             # (json-file paths change on container recreation)
     volumes:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
       - ./mosquitto/acl:/mosquitto/config/acl:ro
