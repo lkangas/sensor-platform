@@ -322,6 +322,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main() -> int:
+    # Emit UTF-8 regardless of the console's default code page (Windows defaults to
+    # cp1252, which mangles the °/… characters in our output).
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
+
     args = parse_args()
     try:
         return asyncio.run(run(args))

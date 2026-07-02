@@ -36,7 +36,7 @@ ansible/    optional fleet management (3+ nodes)
 
 | Milestone | State |
 |-----------|-------|
-| M0 — Verified data source (Phase 0 test script) | 🟡 in progress |
+| M0 — Verified data source (Phase 0 test script) | ✅ done — 6 tags read live (DF5) |
 | M1–M8 | not started |
 
 ## Getting started (M0)
