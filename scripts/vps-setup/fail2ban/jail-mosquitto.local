@@ -2,15 +2,16 @@
 # Install to /etc/fail2ban/jail.d/mosquitto.local
 #
 # Docker-published ports bypass ufw/INPUT — bans must land in the DOCKER-USER
-# chain (filtered on the FORWARD path) to actually take effect. The ban is
-# port-8883-only, so a banned IP can still reach SSH/HTTPS.
+# chain (filtered on the FORWARD path) to actually take effect. That is what the
+# custom iptables-docker-multiport action does. The ban is port-8883-only, so a
+# banned IP can still reach SSH/HTTPS.
 [mosquitto-docker]
 enabled   = true
 backend   = systemd
 filter    = mosquitto-docker
 port      = 8883
 protocol  = tcp
-banaction = iptables-multiport[chain=DOCKER-USER]
+banaction = iptables-docker-multiport
 maxretry  = 5
 findtime  = 10m
 bantime   = 1h

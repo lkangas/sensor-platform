@@ -30,6 +30,29 @@ Docker network only.
 
 Also: `fail2ban` (default sshd jail) and `unattended-upgrades` enabled.
 
+### fail2ban — MQTT brute-force jail (`fail2ban/`)
+
+Protects the public 8883 listener. Install:
+
+```bash
+sudo cp fail2ban/action-iptables-docker-multiport.conf /etc/fail2ban/action.d/iptables-docker-multiport.conf
+sudo cp fail2ban/filter-mosquitto-docker.conf          /etc/fail2ban/filter.d/mosquitto-docker.conf
+sudo cp fail2ban/jail-mosquitto.local                  /etc/fail2ban/jail.d/mosquitto.local
+sudo systemctl restart fail2ban
+```
+
+- Mosquitto logs to **journald** (compose `logging.driver: journald`); the filter
+  reads `CONTAINER_NAME=server-mosquitto-1` and matches mosquitto 2.x
+  `disconnected: not authorised` lines (they include the source IP).
+- 5 failures / 10 min → 1 h ban, **port 8883 only** (SSH/HTTPS unaffected).
+- Bans land in the **DOCKER-USER** chain via the custom action — docker-published
+  ports are DNAT'd through FORWARD and bypass INPUT, so a stock INPUT ban does
+  nothing here. The inline `chain=` override was not honored on this host; the
+  chain is pinned in the action's `[Init]` instead. Verified end-to-end: a
+  brute-forcing IP gets 8883 blackholed while SSH stays up.
+- `fail2ban-client status mosquitto-docker` shows bans;
+  `... set mosquitto-docker unbanip <ip>` clears one.
+
 ## Docker
 
 Installed via get.docker.com (Engine 29.x + compose plugin v5.x); `lauri` in the
