@@ -1,24 +1,28 @@
 #!/bin/sh
-# Wrapper entrypoint for eclipse-mosquitto: the 8883 TLS listener uses the same
+# Wrapper entrypoint for eclipse-mosquitto. The 8883 TLS listener reuses the
 # Let's Encrypt certificate Caddy obtains for petzval.dy.fi (shared caddy-data
-# volume, mounted read-only at /caddy-data). Caddy stores the key root-only, and
-# mosquitto drops to uid 1883 — so we copy the pair to /mosquitto/certs with the
-# right ownership, then re-check every 12h and SIGHUP mosquitto when the cert
-# renews (mosquitto reloads listener certificates on SIGHUP).
-set -eu
+# volume, mounted read-only at /caddy-data).
+#
+# The internal 1883 listener must NEVER depend on TLS: mosquitto starts
+# immediately with the base config, and the 8883 listener is added via a
+# runtime include (rt.d/) as soon as the certificate exists — then kept fresh
+# by a 12h renewal check that SIGHUPs mosquitto (it reloads certs on HUP).
+set -u
 
 DOMAIN="petzval.dy.fi"
 DEST="/mosquitto/certs"
+RTD="/mosquitto/rt.d"          # include_dir in mosquitto.conf; container-local
+mkdir -p "$RTD"
 
 find_src() {
     # ACME CA directory name varies (letsencrypt / zerossl fallback) — glob it
     ls -d /caddy-data/caddy/certificates/*/"$DOMAIN" 2>/dev/null | head -1
 }
 
+# returns 0 = copied (new/rotated), 1 = no cert available, 2 = unchanged
 sync_certs() {
-    SRC=$(find_src) || return 1
-    [ -n "$SRC" ] || return 1
-    [ -f "$SRC/$DOMAIN.crt" ] && [ -f "$SRC/$DOMAIN.key" ] || return 1
+    SRC=$(find_src)
+    [ -n "$SRC" ] && [ -f "$SRC/$DOMAIN.crt" ] && [ -f "$SRC/$DOMAIN.key" ] || return 1
     if ! cmp -s "$SRC/$DOMAIN.crt" "$DEST/server.crt" 2>/dev/null; then
         cp "$SRC/$DOMAIN.crt" "$DEST/server.crt"
         cp "$SRC/$DOMAIN.key" "$DEST/server.key"
@@ -27,26 +31,60 @@ sync_certs() {
         chmod 600 "$DEST/server.key"
         return 0
     fi
-    return 2   # unchanged
+    return 2
 }
 
-echo "certsync: waiting for Caddy's certificate for $DOMAIN ..."
-until sync_certs; do
-    [ $? -eq 2 ] && break   # already in place and current
-    sleep 5
-done
-echo "certsync: certificate ready"
+write_tls_conf() {
+    cat > "$RTD/10-tls-listener.conf" <<EOF
+listener 8883
+allow_anonymous false
+password_file /mosquitto/config/passwd
+acl_file /mosquitto/config/acl
+certfile /mosquitto/certs/server.crt
+keyfile /mosquitto/certs/server.key
+EOF
+}
 
-# periodic renewal check; HUP mosquitto if the cert rotated
-(
-    while true; do
-        sleep 43200
+start_mosquitto() {
+    mosquitto -c /mosquitto/config/mosquitto.conf &
+    MPID=$!
+}
+
+trap 'kill -TERM "${MPID:-0}" 2>/dev/null; exit 0' TERM INT
+
+sync_certs
+rc=$?
+if [ "$rc" != 1 ]; then
+    write_tls_conf
+    echo "certsync: certificate present — starting with 8883 enabled"
+else
+    echo "certsync: no certificate yet — starting 1883-only, will enable 8883 when Caddy has one"
+fi
+start_mosquitto
+
+if [ "$rc" = 1 ]; then
+    # phase 1: poll for first issuance, then restart with the TLS listener
+    while :; do
+        sleep 30
+        kill -0 "$MPID" 2>/dev/null || { wait "$MPID"; exit $?; }   # broker died → let docker restart us
         if sync_certs; then
-            echo "certsync: certificate renewed, reloading mosquitto"
-            kill -HUP "$(pidof mosquitto)" 2>/dev/null || true
+            echo "certsync: certificate arrived — enabling 8883"
+            write_tls_conf
+            kill -TERM "$MPID"; wait "$MPID" 2>/dev/null
+            start_mosquitto
+            break
         fi
     done
-) &
+fi
 
-# hand over to the stock image entrypoint (drops privileges itself)
-exec /docker-entrypoint.sh mosquitto -c /mosquitto/config/mosquitto.conf
+# phase 2: renewal watch — HUP on rotation
+while :; do
+    sleep 43200 &
+    SLEEP_PID=$!
+    wait "$SLEEP_PID" 2>/dev/null
+    kill -0 "$MPID" 2>/dev/null || { wait "$MPID"; exit $?; }
+    if sync_certs; then
+        echo "certsync: certificate renewed — reloading mosquitto"
+        kill -HUP "$MPID" 2>/dev/null || true
+    fi
+done

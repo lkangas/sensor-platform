@@ -1,3 +1,9 @@
+{
+	# ACME account contact — also enables issuer fallback (e.g. ZeroSSL) if
+	# Let's Encrypt is having an outage
+	email vostok@iki.fi
+}
+
 petzval.dy.fi {
 	reverse_proxy grafana:3000
 }
