@@ -1,0 +1,3 @@
+petzval.dy.fi {
+	reverse_proxy grafana:3000
+}

@@ -1,0 +1,17 @@
+# Datasource as code — no clicking on a fresh install.
+# $GRAFANA_DB_PASS is interpolated from the grafana container's environment.
+apiVersion: 1
+
+datasources:
+  - name: TimescaleDB
+    type: postgres
+    access: proxy
+    url: timescaledb:5432
+    user: grafana_ro
+    isDefault: true
+    jsonData:
+      database: sensors
+      sslmode: disable          # internal docker network
+      timescaledb: true
+    secureJsonData:
+      password: $GRAFANA_DB_PASS

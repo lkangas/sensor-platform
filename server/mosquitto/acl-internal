@@ -1,0 +1,8 @@
+# Internal listener (1883, docker network only, anonymous).
+# Rules before any `user` line apply to all clients on this listener:
+# decoders (ruuvibridge-*) read raw site topics and write decoded/#;
+# telegraf reads decoded/#. Read-everything keeps debugging easy from
+# inside the network; nothing outside the compose network can connect.
+
+topic read #
+topic write decoded/#

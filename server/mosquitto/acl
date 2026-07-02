@@ -1,0 +1,13 @@
+# External listener (8883) — per-site users may only WRITE under their own site
+# prefix (<site>/<source>/...). A compromised edge node can't touch other sites'
+# data and can be revoked independently (delete its passwd entry + section here).
+#
+# Passwords live in ./passwd (git-ignored), created on the VPS with:
+#   docker compose exec mosquitto mosquitto_passwd -b /mosquitto/config/passwd site-<name> '<pass>'
+# (see server/README.md)
+
+user site-test
+topic write test/#
+
+user site-home
+topic write home/#

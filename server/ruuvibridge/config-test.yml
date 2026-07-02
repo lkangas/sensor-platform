@@ -1,0 +1,41 @@
+# RuuviBridge for site 'test' — decodes raw Ruuvi gateway packets published at
+# test/ruuvi/<mac> and republishes clean JSON to decoded/test/ruuvi/<mac>.
+# One instance per site (the publisher topic_prefix is static); adding a site =
+# copy this file with the site name changed + a compose service for it.
+# Derived from https://github.com/Scrin/RuuviBridge/blob/master/config.sample.yml
+
+mqtt_listener:
+  enabled: true
+  broker_url: tcp://mosquitto:1883      # internal listener, anonymous (see mosquitto.conf)
+  client_id: RuuviBridgeListener-test
+  # expects Ruuvi *gateway-format* payloads (raw hex in "data") at <topic_prefix>/<mac>
+  topic_prefix: test/ruuvi
+
+processing:
+  # keep the field set = the fixed sensor_readings columns; derived values
+  # (dew point, air density, …) can be computed in Grafana/SQL when wanted
+  extended_values: false
+  filter_mode: none
+
+mqtt_publisher:
+  enabled: true
+  minimum_interval: 10s                 # per-device rate limit into the DB path
+  broker_url: tcp://mosquitto:1883
+  client_id: RuuviBridgePublisher-test
+  topic_prefix: decoded/test/ruuvi      # Telegraf subscribes to decoded/+/ruuvi/+
+  publish_raw: false                    # single JSON per tag; Telegraf parses it
+  retain_messages: false
+
+# MAC → friendly name (flows into the sensor_name column).
+# TODO: fill in real placements; MACs seen in M0:
+tag_names:
+#  CD4FD9E511C5: ...
+#  E89FCAFAEB80: ...   # note: lowest battery of the fleet (2588 mV at M0)
+#  ECB3F4E22339: ...
+#  EFAD6604B090: ...
+#  F5A6ADBCCB54: ...
+#  F8C4569FAC61: ...
+
+logging:
+  type: structured
+  level: info

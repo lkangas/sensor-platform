@@ -1,0 +1,12 @@
+# Dashboard provider — any *.json committed to this directory appears in Grafana.
+# Starter dashboards land here in M6.
+apiVersion: 1
+
+providers:
+  - name: sensor-platform
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: false

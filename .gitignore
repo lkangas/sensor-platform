@@ -9,6 +9,7 @@
 secrets/
 ansible/*.vault
 ansible/**/vault*
+server/mosquitto/passwd
 
 # Prebuilt edge binaries (fetched per-arch, not stored in git)
 edge/bin/ruuvi-gateway-*
