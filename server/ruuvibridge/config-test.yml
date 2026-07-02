@@ -19,7 +19,8 @@ processing:
 
 mqtt_publisher:
   enabled: true
-  minimum_interval: 10s                 # per-device rate limit into the DB path
+  minimum_interval: 0s                  # store every beacon (~0.8 Hz/tag) — keeps
+                                        # the seq counter gap-free for reboot diagnosis
   broker_url: tcp://mosquitto:1883
   client_id: RuuviBridgePublisher-test
   topic_prefix: decoded/test/ruuvi      # Telegraf subscribes to decoded/+/ruuvi/+
