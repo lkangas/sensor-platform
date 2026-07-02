@@ -7,6 +7,11 @@ providers:
     type: file
     disableDeletion: false
     updateIntervalSeconds: 30
+    # allow editing provisioned dashboards in the browser and saving (persists to
+    # Grafana's DB). The JSON file in git stays the source of truth: after editing,
+    # pull the JSON back into the repo (scripts/grafana-pull-dashboard.sh) and
+    # commit, so a rebuild reproduces your changes.
+    allowUiUpdates: true
     options:
       path: /etc/grafana/provisioning/dashboards
       foldersFromFilesStructure: false
