@@ -29,7 +29,7 @@ groups:
               rawQuery: true
               rawSql: >-
                 SELECT DISTINCT ON (sensor_id)
-                  COALESCE(sensor_name, sensor_id) AS sensor,
+                  COALESCE(sensor_name, right(replace(sensor_id, ':', ''), 4)) AS sensor,
                   battery_mv
                 FROM sensor_readings
                 ORDER BY sensor_id, time DESC
@@ -61,7 +61,7 @@ groups:
               format: table
               rawQuery: true
               rawSql: >-
-                SELECT COALESCE(sensor_name, sensor_id) AS sensor,
+                SELECT COALESCE(sensor_name, right(replace(sensor_id, ':', ''), 4)) AS sensor,
                        extract(epoch FROM now() - max(time)) AS age_s
                 FROM sensor_readings
                 WHERE site <> 'test'

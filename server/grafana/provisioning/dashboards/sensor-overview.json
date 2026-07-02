@@ -6,7 +6,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 3,
+  "version": 4,
   "editable": true,
   "time": {
     "from": "now-6h",
@@ -46,7 +46,7 @@
           "type": "postgres",
           "uid": "timescaledb"
         },
-        "query": "SELECT DISTINCT sensor_id FROM sensor_readings WHERE site IN (${site:sqlstring}) ORDER BY 1",
+        "query": "SELECT DISTINCT sensor_id AS __value, right(replace(sensor_id, ':', ''), 4) AS __text FROM sensor_readings WHERE site IN (${site:sqlstring}) ORDER BY 1",
         "includeAll": true,
         "multi": true,
         "current": {
@@ -99,7 +99,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "C3:19:4D:6A:1E:4A"
+              "options": "1E4A"
             },
             "properties": [
               {
@@ -114,7 +114,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "CD:4F:D9:E5:11:C5"
+              "options": "11C5"
             },
             "properties": [
               {
@@ -129,7 +129,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "D9:D6:F4:2E:C8:EE"
+              "options": "C8EE"
             },
             "properties": [
               {
@@ -144,7 +144,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "E8:9F:CA:FA:EB:80"
+              "options": "EB80"
             },
             "properties": [
               {
@@ -159,7 +159,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "EC:B3:F4:E2:23:39"
+              "options": "2339"
             },
             "properties": [
               {
@@ -174,7 +174,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "EF:AD:66:04:B0:90"
+              "options": "B090"
             },
             "properties": [
               {
@@ -189,7 +189,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "F5:A6:AD:BC:CB:54"
+              "options": "CB54"
             },
             "properties": [
               {
@@ -204,7 +204,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "F8:C4:56:9F:AC:61"
+              "options": "AC61"
             },
             "properties": [
               {
@@ -241,7 +241,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT \"time\", COALESCE(sensor_name, sensor_id) AS sensor, temperature\nFROM sensor_readings\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
+          "rawSql": "SELECT \"time\", COALESCE(sensor_name, right(replace(sensor_id, ':', ''), 4)) AS sensor, temperature\nFROM sensor_readings\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
         }
       ]
     },
@@ -280,7 +280,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "C3:19:4D:6A:1E:4A"
+              "options": "1E4A"
             },
             "properties": [
               {
@@ -295,7 +295,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "CD:4F:D9:E5:11:C5"
+              "options": "11C5"
             },
             "properties": [
               {
@@ -310,7 +310,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "D9:D6:F4:2E:C8:EE"
+              "options": "C8EE"
             },
             "properties": [
               {
@@ -325,7 +325,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "E8:9F:CA:FA:EB:80"
+              "options": "EB80"
             },
             "properties": [
               {
@@ -340,7 +340,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "EC:B3:F4:E2:23:39"
+              "options": "2339"
             },
             "properties": [
               {
@@ -355,7 +355,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "EF:AD:66:04:B0:90"
+              "options": "B090"
             },
             "properties": [
               {
@@ -370,7 +370,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "F5:A6:AD:BC:CB:54"
+              "options": "CB54"
             },
             "properties": [
               {
@@ -385,7 +385,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "F8:C4:56:9F:AC:61"
+              "options": "AC61"
             },
             "properties": [
               {
@@ -422,7 +422,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT \"time\", COALESCE(sensor_name, sensor_id) AS sensor, humidity\nFROM sensor_readings\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
+          "rawSql": "SELECT \"time\", COALESCE(sensor_name, right(replace(sensor_id, ':', ''), 4)) AS sensor, humidity\nFROM sensor_readings\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
         }
       ]
     },
@@ -461,7 +461,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "C3:19:4D:6A:1E:4A"
+              "options": "1E4A"
             },
             "properties": [
               {
@@ -476,7 +476,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "CD:4F:D9:E5:11:C5"
+              "options": "11C5"
             },
             "properties": [
               {
@@ -491,7 +491,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "D9:D6:F4:2E:C8:EE"
+              "options": "C8EE"
             },
             "properties": [
               {
@@ -506,7 +506,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "E8:9F:CA:FA:EB:80"
+              "options": "EB80"
             },
             "properties": [
               {
@@ -521,7 +521,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "EC:B3:F4:E2:23:39"
+              "options": "2339"
             },
             "properties": [
               {
@@ -536,7 +536,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "EF:AD:66:04:B0:90"
+              "options": "B090"
             },
             "properties": [
               {
@@ -551,7 +551,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "F5:A6:AD:BC:CB:54"
+              "options": "CB54"
             },
             "properties": [
               {
@@ -566,7 +566,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "F8:C4:56:9F:AC:61"
+              "options": "AC61"
             },
             "properties": [
               {
@@ -603,7 +603,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT \"time\", COALESCE(sensor_name, sensor_id) AS sensor, pressure\nFROM sensor_readings\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
+          "rawSql": "SELECT \"time\", COALESCE(sensor_name, right(replace(sensor_id, ':', ''), 4)) AS sensor, pressure\nFROM sensor_readings\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
         }
       ]
     },
@@ -641,7 +641,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "C3:19:4D:6A:1E:4A"
+              "options": "1E4A"
             },
             "properties": [
               {
@@ -656,7 +656,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "CD:4F:D9:E5:11:C5"
+              "options": "11C5"
             },
             "properties": [
               {
@@ -671,7 +671,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "D9:D6:F4:2E:C8:EE"
+              "options": "C8EE"
             },
             "properties": [
               {
@@ -686,7 +686,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "E8:9F:CA:FA:EB:80"
+              "options": "EB80"
             },
             "properties": [
               {
@@ -701,7 +701,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "EC:B3:F4:E2:23:39"
+              "options": "2339"
             },
             "properties": [
               {
@@ -716,7 +716,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "EF:AD:66:04:B0:90"
+              "options": "B090"
             },
             "properties": [
               {
@@ -731,7 +731,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "F5:A6:AD:BC:CB:54"
+              "options": "CB54"
             },
             "properties": [
               {
@@ -746,7 +746,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "F8:C4:56:9F:AC:61"
+              "options": "AC61"
             },
             "properties": [
               {
@@ -783,7 +783,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT \"time\", COALESCE(sensor_name, sensor_id) AS sensor, battery_mv\nFROM sensor_readings\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
+          "rawSql": "SELECT \"time\", COALESCE(sensor_name, right(replace(sensor_id, ':', ''), 4)) AS sensor, battery_mv\nFROM sensor_readings\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
         }
       ]
     },
@@ -955,7 +955,7 @@
           },
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT DISTINCT ON (sensor_id)\n  COALESCE(sensor_name, sensor_id) AS \"sensor\",\n  extract(epoch FROM now() - time) AS \"age\",\n  temperature AS \"temperature\",\n  humidity AS \"humidity\",\n  round(pressure::numeric, 1) AS \"pressure\",\n  battery_mv AS \"battery\",\n  rssi AS \"rssi\"\nFROM sensor_readings\nWHERE site IN (${site:sqlstring}) AND sensor_id IN (${sensor:sqlstring})\nORDER BY sensor_id, time DESC"
+          "rawSql": "SELECT DISTINCT ON (sensor_id)\n  COALESCE(sensor_name, right(replace(sensor_id, ':', ''), 4)) AS \"sensor\",\n  extract(epoch FROM now() - time) AS \"age\",\n  temperature AS \"temperature\",\n  humidity AS \"humidity\",\n  round(pressure::numeric, 1) AS \"pressure\",\n  battery_mv AS \"battery\",\n  rssi AS \"rssi\"\nFROM sensor_readings\nWHERE site IN (${site:sqlstring}) AND sensor_id IN (${sensor:sqlstring})\nORDER BY sensor_id, time DESC"
         }
       ]
     },
@@ -993,7 +993,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "C3:19:4D:6A:1E:4A"
+              "options": "1E4A"
             },
             "properties": [
               {
@@ -1008,7 +1008,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "CD:4F:D9:E5:11:C5"
+              "options": "11C5"
             },
             "properties": [
               {
@@ -1023,7 +1023,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "D9:D6:F4:2E:C8:EE"
+              "options": "C8EE"
             },
             "properties": [
               {
@@ -1038,7 +1038,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "E8:9F:CA:FA:EB:80"
+              "options": "EB80"
             },
             "properties": [
               {
@@ -1053,7 +1053,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "EC:B3:F4:E2:23:39"
+              "options": "2339"
             },
             "properties": [
               {
@@ -1068,7 +1068,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "EF:AD:66:04:B0:90"
+              "options": "B090"
             },
             "properties": [
               {
@@ -1083,7 +1083,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "F5:A6:AD:BC:CB:54"
+              "options": "CB54"
             },
             "properties": [
               {
@@ -1098,7 +1098,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "F8:C4:56:9F:AC:61"
+              "options": "AC61"
             },
             "properties": [
               {
@@ -1135,7 +1135,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT \"time\", COALESCE(sensor_name, sensor_id) AS sensor, seq\nFROM sensor_readings\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
+          "rawSql": "SELECT \"time\", COALESCE(sensor_name, right(replace(sensor_id, ':', ''), 4)) AS sensor, seq\nFROM sensor_readings\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
         }
       ],
       "description": "Increments per measurement, wraps at 65535. A DROP that is not a wrap means the tag rebooted \u2014 the classic failing-battery (brown-out) signature."
@@ -1174,7 +1174,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "C3:19:4D:6A:1E:4A"
+              "options": "1E4A"
             },
             "properties": [
               {
@@ -1189,7 +1189,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "CD:4F:D9:E5:11:C5"
+              "options": "11C5"
             },
             "properties": [
               {
@@ -1204,7 +1204,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "D9:D6:F4:2E:C8:EE"
+              "options": "C8EE"
             },
             "properties": [
               {
@@ -1219,7 +1219,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "E8:9F:CA:FA:EB:80"
+              "options": "EB80"
             },
             "properties": [
               {
@@ -1234,7 +1234,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "EC:B3:F4:E2:23:39"
+              "options": "2339"
             },
             "properties": [
               {
@@ -1249,7 +1249,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "EF:AD:66:04:B0:90"
+              "options": "B090"
             },
             "properties": [
               {
@@ -1264,7 +1264,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "F5:A6:AD:BC:CB:54"
+              "options": "CB54"
             },
             "properties": [
               {
@@ -1279,7 +1279,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "F8:C4:56:9F:AC:61"
+              "options": "AC61"
             },
             "properties": [
               {
@@ -1316,7 +1316,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT \"time\", COALESCE(sensor_name, sensor_id) AS sensor, movement_ctr\nFROM sensor_readings\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
+          "rawSql": "SELECT \"time\", COALESCE(sensor_name, right(replace(sensor_id, ':', ''), 4)) AS sensor, movement_ctr\nFROM sensor_readings\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
         }
       ],
       "description": "Increments on accelerometer motion events; wraps at 255."
@@ -1355,7 +1355,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "C3:19:4D:6A:1E:4A"
+              "options": "1E4A"
             },
             "properties": [
               {
@@ -1370,7 +1370,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "CD:4F:D9:E5:11:C5"
+              "options": "11C5"
             },
             "properties": [
               {
@@ -1385,7 +1385,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "D9:D6:F4:2E:C8:EE"
+              "options": "C8EE"
             },
             "properties": [
               {
@@ -1400,7 +1400,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "E8:9F:CA:FA:EB:80"
+              "options": "EB80"
             },
             "properties": [
               {
@@ -1415,7 +1415,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "EC:B3:F4:E2:23:39"
+              "options": "2339"
             },
             "properties": [
               {
@@ -1430,7 +1430,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "EF:AD:66:04:B0:90"
+              "options": "B090"
             },
             "properties": [
               {
@@ -1445,7 +1445,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "F5:A6:AD:BC:CB:54"
+              "options": "CB54"
             },
             "properties": [
               {
@@ -1460,7 +1460,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "F8:C4:56:9F:AC:61"
+              "options": "AC61"
             },
             "properties": [
               {
@@ -1497,7 +1497,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT \"time\", COALESCE(sensor_name, sensor_id) AS sensor, rssi\nFROM sensor_readings\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
+          "rawSql": "SELECT \"time\", COALESCE(sensor_name, right(replace(sensor_id, ':', ''), 4)) AS sensor, rssi\nFROM sensor_readings\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
         }
       ],
       "description": "As heard by the site's gateway."
