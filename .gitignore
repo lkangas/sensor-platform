@@ -1,0 +1,28 @@
+# Per-machine config — never committed (principle 3: only .env differs per machine)
+**/.env
+.env
+
+# Secrets, certs, keys
+*.pem
+*.key
+*.crt
+secrets/
+ansible/*.vault
+ansible/**/vault*
+
+# Prebuilt edge binaries (fetched per-arch, not stored in git)
+edge/bin/ruuvi-gateway-*
+!edge/bin/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
