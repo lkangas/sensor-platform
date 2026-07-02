@@ -42,7 +42,8 @@ ansible/    optional fleet management (3+ nodes)
 | M3 — Schema live (hypertable + caggs) | ✅ done — sensor_readings + hourly rollup |
 | M4 — Glue proven (publish → decode → DB) | ✅ done — 8 tags, 37 rows on first run |
 | M6 — Dashboards & alerts as code | ✅ done — overview dashboard; low-battery alert fire-tested |
-| M5, M7, M8 | not started |
+| M5 — First edge nodes | 📋 planned & templated — [docs/EDGE-SETUP.md](docs/EDGE-SETUP.md); awaiting hardware |
+| M7, M8 | not started |
 
 ## Getting started (M0)
 

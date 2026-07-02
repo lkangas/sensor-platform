@@ -11,3 +11,6 @@ topic write test/#
 
 user site-home
 topic write home/#
+
+user site-summer
+topic write summer/#

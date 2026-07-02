@@ -11,6 +11,10 @@ ansible/*.vault
 ansible/**/vault*
 server/mosquitto/passwd
 
+# Rendered edge gateway config contains the site password (bootstrap generates it
+# from config.yml.template); the template IS committed.
+edge/ruuvi-go-gateway/config.yml
+
 # Prebuilt edge binaries (fetched per-arch, not stored in git)
 edge/bin/ruuvi-gateway-*
 !edge/bin/.gitkeep

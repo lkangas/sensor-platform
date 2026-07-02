@@ -1,0 +1,16 @@
+# Profile A: native binary under systemd, for ARMv6 boards (original Pi Zero/Zero W,
+# Pi 1) where Docker images often have no arm/v6 variant. bootstrap-edge.sh installs
+# the binary to /usr/local/bin and the generated config to /etc/ruuvi-go-gateway/.
+# Runs as root so it has the BLE scan capabilities without setcap juggling.
+[Unit]
+Description=Ruuvi BLE gateway
+After=network-online.target bluetooth.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/ruuvi-go-gateway -config /etc/ruuvi-go-gateway/config.yml
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

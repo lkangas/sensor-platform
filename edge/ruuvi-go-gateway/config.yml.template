@@ -1,0 +1,28 @@
+# Template — bootstrap-edge.sh runs `envsubst` on this to produce config.yml
+# (git-ignored, since it contains the password). Do not edit config.yml by hand;
+# edit .env and re-run bootstrap, or edit this template.
+#
+# Format reference: https://github.com/Scrin/ruuvi-go-gateway/blob/master/config.sample.yml
+
+gw_mac: ${GW_MAC}
+
+# false = forward only RuuviTag advertisements (what we want). true = all BLE.
+all_advertisements: false
+
+# hci0 by default. If using a USB BLE dongle that enumerates elsewhere, change this.
+hci_index: 0
+
+mqtt:
+  enabled: true
+  # ssl:// = TLS; verified against the system CA (cert is Let's Encrypt).
+  broker_url: ssl://${MQTT_HOST}:${MQTT_PORT}
+  client_id: ruuvi-gw-${SITE}
+  username: ${MQTT_USER}
+  password: ${MQTT_PASS}
+  # publishes each tag to <site>/ruuvi/<mac>, plus LWT to <site>/ruuvi/gw_status
+  topic_prefix: ${SITE}/ruuvi
+
+logging:
+  type: simple
+  level: info
+  timestamps: true
