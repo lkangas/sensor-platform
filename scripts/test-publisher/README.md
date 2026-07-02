@@ -39,20 +39,25 @@ actual tags. This is the real starting point for the whole plan.
 - **Older tags on DF3** — not decoded here; update the tag firmware or extend
   `decode_df5` with a DF3 branch.
 
-## M4 — publish over MQTT (later, needs the VPS)
+## M4 — publish over MQTT (verified 2026-07-02)
 
-Once Mosquitto is up on the VPS (Phase 2), the same script can push readings through
-the real pipeline:
+With the VPS stack up, the same script pushes advertisements through the real
+pipeline. It forwards **exactly like a real Ruuvi gateway**: topic
+`<site>/ruuvi/<mac>`, payload in Ruuvi Gateway JSON format (raw advertisement hex
+in `data`) — RuuviBridge does the decoding server-side.
 
 ```
-python ruuvi_test_publisher.py \
-    --mqtt-host metrics.example.com --mqtt-port 8883 --tls \
-    --mqtt-user site-test --mqtt-pass '…' --site test
+# password: --mqtt-pass, $MQTT_PASS, or a git-ignored .env here (MQTT_PASS=...)
+python ruuvi_test_publisher.py --once --once-seconds 75 \
+    --mqtt-host petzval.dy.fi --mqtt-port 8883 --tls \
+    --mqtt-user site-test --site test
 ```
 
-Publishes each reading to `<site>/ruuvi/<sensor_id>`, matching the plan's topic
-convention. **NOTE:** the JSON body shape is provisional — confirm it against what
-RuuviBridge / Telegraf expect on `decoded/#` when wiring up Phase 4.
+Verified end-to-end: raw on `test/ruuvi/#` → RuuviBridge → clean JSON on
+`decoded/test/ruuvi/#` → Telegraf → rows in `sensor_readings` with correct
+site/source/sensor_id, pressure in hPa, battery in mV. RuuviBridge output
+confirmed camelCase fields, pressure in Pa, batteryVoltage in volts — the
+telegraf.conf conversions match.
 
 Record each tag's MAC → friendly name as you identify them; that mapping is used later
 in RuuviBridge / the `sensor_names` table.

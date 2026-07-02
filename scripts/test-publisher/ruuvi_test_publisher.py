@@ -11,10 +11,12 @@ Two modes, matching the plan's Phase 0 steps:
      (RAWv2), and print readings to the console. No MQTT, no VPS dependency.
      This alone answers "do I get RuuviTag data?".
 
-  2. Publish (--mqtt-host …) — additionally publish each decoded reading over MQTT
-     into the same topic convention a real gateway uses (`<site>/ruuvi/<sensor_id>`),
-     to exercise the whole pipeline. This is a Phase 2+/M4 activity: it needs the
-     VPS's Mosquitto broker to exist. See NOTE on payload shape near publish_reading().
+  2. Publish (--mqtt-host …) — additionally forward each advertisement over MQTT
+     exactly like a real Ruuvi gateway would: topic `<site>/ruuvi/<mac>`, payload in
+     the Ruuvi Gateway JSON format (raw advertisement hex in `data`), which is what
+     RuuviBridge's mqtt_listener expects. This is the M4 pipeline smoke test; the
+     MQTT password comes from --mqtt-pass, $MQTT_PASS, or a .env file next to this
+     script (MQTT_PASS=...), so it never has to appear on a command line.
 
 Cross-platform via `bleak` (works natively on Windows, macOS, Linux/BlueZ).
 
@@ -37,11 +39,14 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import signal
 import struct
 import sys
+import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 
 try:
     from bleak import BleakScanner
@@ -173,32 +178,43 @@ def sensor_id(mac: str) -> str:
     return mac.replace(":", "").lower()
 
 
-def build_payload(reading: Reading) -> dict:
-    """Flat key/value JSON body for one reading.
+def build_gateway_payload(manufacturer_payload: bytes, rssi: int | None) -> dict:
+    """Ruuvi Gateway JSON body — what RuuviBridge's mqtt_listener expects.
 
-    NOTE (Phase 4 / M4): this is a reasonable clean-values body, but the exact shape
-    RuuviBridge expects on its MQTT *input* (or that Telegraf expects on `decoded/#`)
-    must be confirmed when the pipeline is wired up. For M0 this is only used to prove
-    MQTT connectivity end-to-end; treat the schema as provisional until then.
+    `data` is the raw BLE advertisement hex: flags AD (020106) + one
+    manufacturer-specific AD (len, 0xFF, company id 0x0499 little-endian, payload).
+    RuuviBridge finds the Ruuvi manufacturer data in there and decodes it itself —
+    this script stays a dumb forwarder in publish mode, like a real gateway.
     """
-    body = {
-        "time": datetime.now(timezone.utc).isoformat(),
-        "sensor_id": sensor_id(reading.mac),
-        "mac": reading.mac,
-        "data_format": reading.data_format,
-        "temperature": reading.temperature_c,
-        "humidity": reading.humidity_pct,
-        "pressure": reading.pressure_hpa,
-        "acceleration_x": reading.accel_x_g,
-        "acceleration_y": reading.accel_y_g,
-        "acceleration_z": reading.accel_z_g,
-        "battery_mv": reading.battery_mv,
-        "tx_power": reading.tx_power_dbm,
-        "movement_counter": reading.movement_counter,
-        "sequence": reading.sequence,
-        "rssi": reading.rssi,
+    ad_len = len(manufacturer_payload) + 3  # type byte + 2-byte company id
+    data_hex = "020106" + f"{ad_len:02X}" + "FF" + "9904" + manufacturer_payload.hex().upper()
+    now = int(time.time())
+    return {
+        "gw_mac": "00:00:00:00:00:00",  # this test script is not a real gateway
+        "rssi": rssi if rssi is not None else 0,
+        "aoa": [],
+        "gwts": now,
+        "ts": now,
+        "data": data_hex,
+        "coords": "",
     }
-    return {k: v for k, v in body.items() if v is not None}
+
+
+def load_dotenv_next_to_script() -> None:
+    """Populate os.environ from a `.env` beside this script (KEY=VALUE lines).
+
+    Lets the MQTT password live in a git-ignored file instead of a command line.
+    Existing environment variables win.
+    """
+    env_file = Path(__file__).resolve().parent / ".env"
+    if not env_file.is_file():
+        return
+    for line in env_file.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        os.environ.setdefault(key.strip(), value.strip())
 
 
 async def run(args: argparse.Namespace) -> int:
@@ -214,7 +230,8 @@ async def run(args: argparse.Namespace) -> int:
         payload = md.get(RUUVI_COMPANY_ID)
         if not payload:
             return  # not a Ruuvi advertisement
-        reading = decode_df5(bytes(payload), rssi=adv.rssi)
+        raw = bytes(payload)
+        reading = decode_df5(raw, rssi=adv.rssi)
         if reading is None:
             return  # a Ruuvi packet but not DF5 (older format) — ignore for now
         first_time = reading.mac not in seen
@@ -222,8 +239,9 @@ async def run(args: argparse.Namespace) -> int:
         print(reading.as_line(), flush=True)
 
         if publisher is not None:
-            topic = f"{args.site}/ruuvi/{sensor_id(reading.mac)}"
-            publisher.publish(topic, json.dumps(build_payload(reading)), qos=0)
+            # forward like a real gateway: raw hex, RuuviBridge does the decoding
+            topic = f"{args.site}/ruuvi/{reading.mac}"
+            publisher.publish(topic, json.dumps(build_gateway_payload(raw, adv.rssi)), qos=0)
 
         if args.once and first_time:
             # Stop once we've seen at least one reading from every tag we've found so far.
@@ -282,9 +300,13 @@ def _make_publisher(args: argparse.Namespace):
             "--mqtt-host given but paho-mqtt is not installed.\n"
             "Run:  pip install paho-mqtt   (or: pip install -r requirements.txt)"
         )
-    client = mqtt.Client()
+    try:  # paho-mqtt 2.x requires an explicit callback API version
+        client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    except AttributeError:  # paho-mqtt 1.x
+        client = mqtt.Client()
+    password = args.mqtt_pass or os.environ.get("MQTT_PASS")
     if args.mqtt_user:
-        client.username_pw_set(args.mqtt_user, args.mqtt_pass or "")
+        client.username_pw_set(args.mqtt_user, password or "")
     if args.tls:
         client.tls_set()  # system CA bundle; the VPS cert is Let's Encrypt (Phase 2)
     client.connect(args.mqtt_host, args.mqtt_port, keepalive=30)
@@ -311,7 +333,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--mqtt-host", help="Mosquitto host; enables MQTT publishing")
     p.add_argument("--mqtt-port", type=int, default=8883)
     p.add_argument("--mqtt-user")
-    p.add_argument("--mqtt-pass")
+    p.add_argument("--mqtt-pass", help="or set $MQTT_PASS / MQTT_PASS= in .env beside the script")
     p.add_argument("--tls", action="store_true", help="use TLS for the MQTT connection")
     p.add_argument(
         "--site",
@@ -330,6 +352,7 @@ def main() -> int:
         except (AttributeError, ValueError):
             pass
 
+    load_dotenv_next_to_script()
     args = parse_args()
     try:
         return asyncio.run(run(args))

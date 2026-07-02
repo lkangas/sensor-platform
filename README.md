@@ -40,7 +40,8 @@ ansible/    optional fleet management (3+ nodes)
 | M1 — Foundation (VPS hardened, Docker, DNS) | ✅ done — petzval.dy.fi → Hetzner hel1 |
 | M2 — Server up (stack healthy, HTTPS) | ✅ done — https://petzval.dy.fi + MQTTS 8883 |
 | M3 — Schema live (hypertable + caggs) | ✅ done — sensor_readings + hourly rollup |
-| M4–M8 | not started |
+| M4 — Glue proven (publish → decode → DB) | ✅ done — 8 tags, 37 rows on first run |
+| M5–M8 | not started |
 
 ## Getting started (M0)
 
