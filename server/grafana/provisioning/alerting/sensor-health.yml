@@ -9,6 +9,8 @@ groups:
     folder: Sensor platform
     interval: 5m
     rules:
+      # Firing verified 2026-07-02 with a temporary 2700 mV threshold (two tags
+      # alerted, including a previously unseen one); production threshold 2500.
       - uid: low-battery
         title: Low sensor battery
         condition: C
@@ -38,7 +40,7 @@ groups:
               type: threshold
               expression: A
               conditions:
-                - evaluator: { type: lt, params: [2700] }
+                - evaluator: { type: lt, params: [2500] }
 
       # Meaningful once a real site publishes continuously (M5); the bursty
       # 'test' site is excluded so manual test runs don't false-alarm.
