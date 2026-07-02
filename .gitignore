@@ -14,6 +14,8 @@ server/mosquitto/passwd
 # Rendered edge gateway config contains the site password (bootstrap generates it
 # from config.yml.template); the template IS committed.
 edge/ruuvi-go-gateway/config.yml
+# Rendered store-and-forward broker config also contains the site password.
+edge/store-and-forward/mosquitto.conf
 
 # Prebuilt edge binaries (fetched per-arch, not stored in git)
 edge/bin/ruuvi-gateway-*

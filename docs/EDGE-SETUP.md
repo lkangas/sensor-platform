@@ -59,10 +59,10 @@ buying two identical ones means one flashing procedure and one spare-parts story
 
 ### My concrete suggestion
 Two **Raspberry Pi 4 (2 GB)** (or two used Pi 3B+ to save money) — identical,
-built-in BT, Profile B, and the Pi 4 has enough spare capacity to add
-store-and-forward at the summer place later. If you'd rather one bulletproof
-always-on box at home, a used N100 mini-PC + a cheap USB BLE dongle is a fine
-substitute — tell me and I'll adjust the plan.
+built-in BT, Profile B. If you'd rather one bulletproof always-on box at home, a
+used N100 mini-PC + a cheap USB BLE dongle is a fine substitute — tell me and
+I'll adjust the plan. (Store-and-forward for the summer place does **not** require
+a big board — even a Pi Zero W can do it; see §8.)
 
 > ⚠️ **Summer place, cold-weather caveat:** the node monitors a space you're
 > worried will freeze — so the node itself lives in that cold. Most Pis are rated
@@ -197,9 +197,9 @@ The home node is the easy one. The summer place has three real differences:
 1. **Flaky internet.** MQTT tolerates latency and auto-reconnects, so brief drops
    just cause **gaps** in the data. `ruuvi-go-gateway` forwards in real time and
    does **not** buffer across long outages — if you lose the link for hours, those
-   hours are simply missing. If gap-free history matters, add a store-and-forward
-   step (local buffer + replay on reconnect); a Pi 4 has the capacity for it. Say
-   the word and I'll design that as a follow-up. Otherwise: accept the gaps.
+   hours are simply missing. If gap-free history matters (it does for a freeze
+   watch), enable **store-and-forward** — see **§8**, which is written to be added
+   later without redesign. Otherwise: accept the gaps.
    - Note: the **"sensor offline"** alert (M6) will fire during a long internet
      outage even though the tags are fine — it can't tell "tag dead" from "link
      down." The gateway's LWT (`<site>/ruuvi/gw_status`) distinguishes them; we can
@@ -216,7 +216,95 @@ The home node is the easy one. The summer place has three real differences:
 
 ---
 
-## 8. Scaling beyond two nodes (M7 / M8, later)
+## 8. Store-and-forward for lossy links (deferrable)
+
+Default behaviour is real-time forwarding: an outage = a gap (§7.1). To get
+**gap-free history** at a site (mainly the summer place), add a local buffer that
+queues while the VPS is unreachable and drains on reconnect. This is **deferrable
+by design** — bring the site up with direct forwarding first; turning it on later
+is an edge-only change plus one central timestamp fix, with **no schema or
+dashboard changes**.
+
+### Architecture
+
+Insert a small **local Mosquitto broker** on the edge node, bridged to the VPS:
+
+```
+RuuviTags ─BLE─► ruuvi-go-gateway ─► localhost:1883 (local mosquitto)
+                                          │  bridge: TLS, QoS 1, persistent session
+                                          ▼  queues while VPS down, flushes on reconnect
+                               petzval.dy.fi:8883 ─► (rest of pipeline unchanged)
+```
+
+- The gateway publishes to `localhost` (always reachable) → it never loses a
+  reading to the WAN being down.
+- Mosquitto's **bridge** forwards `<site>/#` to the VPS, queueing while the VPS is
+  unreachable and flushing in order on reconnect — a built-in feature, no code.
+- Config template is staged: `edge/store-and-forward/mosquitto.conf.template`
+  (rendered from `edge/.env`, same as the gateway config). The gateway then points
+  at `tcp://localhost:1883` (anonymous, local); the VPS credentials/TLS move into
+  the bridge.
+
+### The timestamp fix (must ship *with* it)
+
+Today every row is stamped at **receive** time — Telegraf has no `json_time_key`
+and RuuviBridge emits `timestamp: 0`. Replayed data would all land at the flush
+moment, which is wrong. So enabling store-and-forward requires, as one unit:
+
+1. **Edge clock correct** — NTP on (small ARM boards have no RTC; already in the
+   ops notes). The gateway stamps each packet's `ts` from this clock.
+2. **RuuviBridge propagates `ts`** into its decoded output — verify/enable this
+   (the M4 capture showed `timestamp: 0`; may need an option or newer version).
+3. **Telegraf reads that timestamp** (`json_time_key` + `json_time_format`) rather
+   than receive time.
+
+⚠️ Do **not** apply step 3 alone: with RuuviBridge still sending `0`, every row
+would be stamped at 1970. The three go together, gated behind a checkpoint —
+publish a reading, pull the link for a few minutes, restore it, and confirm the
+buffered row lands at its *original* time, not the flush time.
+
+### Capacity — yes, a Pi Zero W is enough
+
+Correcting an earlier over-caution: buffer depth is **not** gated on a big board.
+
+- Queued messages live in **RAM** during a single continuous outage (Mosquitto
+  holds them in memory); **disk persistence** (`persistence true`) protects the
+  queue across an edge **reboot** mid-outage.
+- Rough budget on a 512 MB **Pi Zero W**: after a headless Lite OS you have
+  ~350 MB free; queued MQTT messages cost on the order of a few hundred bytes to
+  ~1 KB each, so you can hold **hundreds of thousands** of readings — comfortably
+  **several days** at ~10 tags (~170 k/day). Fewer tags or a longer publish
+  interval stretch it further.
+- So the practical knob really is **SD-card size** (OS + persistence headroom +
+  wear margin — use a decent A2 card), as you said. Only a *multi-week continuous*
+  outage would pressure RAM on a 512 MB board — then use a bigger board or the
+  disk-backed option below.
+
+### Deploying it per profile
+
+- **Profile A (ARMv6 — e.g. Pi Zero W):** runs **natively**, not in Docker (ARMv6
+  images are scarce). `sudo apt install mosquitto` (Raspbian ships an armv6 build),
+  drop the rendered config in `/etc/mosquitto/conf.d/`, and point the native
+  gateway binary at `localhost:1883`.
+- **Profile B (Pi Zero 2 W, Pi 3+/4, x86):** add a second small `mosquitto`
+  service to `edge/docker-compose.yml` (with a persistence volume) alongside the
+  gateway container.
+
+### If you ever need truly huge, disk-bound buffering
+
+For extremes (weeks offline on a tiny board), swap the local broker for a small
+disk-backed queue agent (SQLite + `paho` + replay) — buffer depth becomes pure SD
+size, at the cost of code you maintain. Not needed for the summer place; noted for
+completeness.
+
+> Deferred, but real: the template and this procedure exist so that enabling
+> store-and-forward later is a config + verify job, not a redesign. When you want
+> it, I'll render the config, make the timestamp changes as one gated unit, and run
+> the pull-the-link checkpoint with you.
+
+---
+
+## 9. Scaling beyond two nodes (M7 / M8, later)
 
 - **Tier 1 — bootstrap script (now):** what §5 uses. Good to a handful of nodes.
 - **Tier 2 — Ansible (at ~3+ nodes):** manage the fleet from one command;
@@ -229,7 +317,7 @@ The home node is the easy one. The summer place has three real differences:
 
 ---
 
-## 9. Quick reference — files this involves
+## 10. Quick reference — files this involves
 
 | File | Role |
 |------|------|
@@ -241,10 +329,11 @@ The home node is the easy one. The summer place has three real differences:
 | `scripts/bootstrap-edge.sh` | the one-command setup |
 | `server/ruuvibridge/config-{home,summer}.yml` | per-site decoders (staged) |
 | `server/mosquitto/acl` | per-site write permissions (home + summer staged) |
+| `edge/store-and-forward/mosquitto.conf.template` | §8 local buffering broker (deferrable) |
 
 ---
 
-## 10. TL;DR of what to do next
+## 11. TL;DR of what to do next
 
 1. **Buy** two nodes (see §2 — my pick: 2× Pi 4 2 GB, or ask me to tailor).
 2. When they arrive, tell me — I'll do the server-side prep (§4) with you and hand

@@ -1,0 +1,45 @@
+# Edge-side store-and-forward broker (DEFERRABLE feature — see docs/EDGE-SETUP.md §8).
+# Rendered from edge/.env by envsubst, like the gateway config. In this mode the
+# local ruuvi-go-gateway publishes to localhost:1883 (always reachable), and THIS
+# broker bridges to the VPS — queueing messages while the VPS is unreachable and
+# flushing them, in order, on reconnect. Built-in Mosquitto feature, no custom code.
+#
+# Deploy:
+#   Profile A (ARMv6, e.g. Pi Zero W):  sudo apt install mosquitto, then place the
+#     rendered file in /etc/mosquitto/conf.d/storeforward.conf
+#   Profile B (Docker):  add a mosquitto service to edge/docker-compose.yml mounting
+#     the rendered file, with a persistence volume.
+#
+# Also required (see §8 "timestamp fix"): the gateway config must point at the local
+# broker — broker_url: tcp://localhost:1883, no TLS/creds (local, anonymous) — and
+# the VPS credentials live here in the bridge instead.
+
+persistence true
+persistence_location /var/lib/mosquitto/
+autosave_interval 30
+log_dest stdout
+
+# ruuvi-go-gateway connects here; loopback-only so it is never exposed
+listener 1883 localhost
+allow_anonymous true
+
+# --- bridge to the VPS broker ---
+connection vps-${SITE}
+address ${MQTT_HOST}:${MQTT_PORT}
+remote_clientid edge-${SITE}
+remote_username ${MQTT_USER}
+remote_password ${MQTT_PASS}
+# TLS: validate the VPS Let's Encrypt cert against the system CA bundle
+bridge_cafile /etc/ssl/certs/ca-certificates.crt
+bridge_tls_version tlsv1.2
+# forward this site's topics outbound at QoS 1 (reliable, ordered)
+topic ${SITE}/# out 1
+# persistent session so the queue survives reconnects; queue even QoS-0 messages
+cleansession false
+queue_qos0_messages true
+# Buffer depth. 0 = unlimited (bounded by RAM during a single continuous outage;
+# disk persistence above protects the queue across an edge REBOOT mid-outage).
+# On a 512 MB board expecting multi-week outages, set a finite cap here instead.
+max_queued_messages 0
+notifications false
+restart_timeout 5 30
