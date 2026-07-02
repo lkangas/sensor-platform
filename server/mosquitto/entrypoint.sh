@@ -77,14 +77,19 @@ if [ "$rc" = 1 ]; then
     done
 fi
 
-# phase 2: renewal watch — HUP on rotation
+# phase 2: liveness check every minute; renewal check every ~12h — HUP on rotation
+TICKS=0
 while :; do
-    sleep 43200 &
+    sleep 60 &
     SLEEP_PID=$!
     wait "$SLEEP_PID" 2>/dev/null
-    kill -0 "$MPID" 2>/dev/null || { wait "$MPID"; exit $?; }
-    if sync_certs; then
-        echo "certsync: certificate renewed — reloading mosquitto"
-        kill -HUP "$MPID" 2>/dev/null || true
+    kill -0 "$MPID" 2>/dev/null || { wait "$MPID"; exit $?; }   # broker died → exit, docker restarts us
+    TICKS=$((TICKS + 1))
+    if [ "$TICKS" -ge 720 ]; then
+        TICKS=0
+        if sync_certs; then
+            echo "certsync: certificate renewed — reloading mosquitto"
+            kill -HUP "$MPID" 2>/dev/null || true
+        fi
     fi
 done

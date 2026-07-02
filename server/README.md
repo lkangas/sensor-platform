@@ -21,6 +21,8 @@ done
 docker run --rm -v "$PWD/mosquitto:/work" eclipse-mosquitto:2 \
   mosquitto_passwd -c -b /work/passwd site-test '<password-for-site-test>'
 # additional sites: same command without -c
+# the container writes it root-owned; mosquitto reads it as uid 1883:
+sudo chown 1883:1883 mosquitto/passwd && sudo chmod 600 mosquitto/passwd
 
 # 3. up
 docker compose up -d
