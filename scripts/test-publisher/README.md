@@ -1,0 +1,58 @@
+# test-publisher — Phase 0 local verification
+
+A **throwaway** tool, not a real edge node. It answers "can I read my RuuviTags?"
+before any VPS or edge hardware exists, and later smoke-tests the ingestion pipeline.
+
+## Install
+
+```
+pip install -r requirements.txt
+```
+
+Cross-platform via [`bleak`](https://github.com/hbldh/bleak) — works natively on
+Windows (no WSL needed), macOS, and Linux/BlueZ. `paho-mqtt` is only used for the
+optional publishing mode.
+
+## M0 — read-only (do this first)
+
+```
+python ruuvi_test_publisher.py          # scan until Ctrl-C
+python ruuvi_test_publisher.py --once    # scan ~8s, print, exit
+```
+
+Expected output — a line per advertisement:
+
+```
+E2:1A:9C:33:7B:04  T=21.42°C  RH=38.75%  P=1013.2 hPa  batt=2971mV  seq=41210  rssi=-58
+```
+
+**Checkpoint (M0):** you see readable temperature / humidity / pressure from your
+actual tags. This is the real starting point for the whole plan.
+
+### Troubleshooting
+
+- **No tags heard** — confirm Bluetooth is on and the tags are advertising in
+  **Data Format 5** (the current default; this script decodes DF5). On Linux, make
+  sure `bluetooth.service` is running.
+- **Windows** — grant the terminal Bluetooth permission if prompted. Run from a normal
+  (non-WSL) Python; WSL can't reach the Bluetooth adapter directly.
+- **Older tags on DF3** — not decoded here; update the tag firmware or extend
+  `decode_df5` with a DF3 branch.
+
+## M4 — publish over MQTT (later, needs the VPS)
+
+Once Mosquitto is up on the VPS (Phase 2), the same script can push readings through
+the real pipeline:
+
+```
+python ruuvi_test_publisher.py \
+    --mqtt-host metrics.example.com --mqtt-port 8883 --tls \
+    --mqtt-user site-test --mqtt-pass '…' --site test
+```
+
+Publishes each reading to `<site>/ruuvi/<sensor_id>`, matching the plan's topic
+convention. **NOTE:** the JSON body shape is provisional — confirm it against what
+RuuviBridge / Telegraf expect on `decoded/#` when wiring up Phase 4.
+
+Record each tag's MAC → friendly name as you identify them; that mapping is used later
+in RuuviBridge / the `sensor_names` table.

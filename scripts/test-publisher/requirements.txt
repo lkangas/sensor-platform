@@ -1,0 +1,6 @@
+# Phase 0 verification script dependencies.
+# bleak is cross-platform (Windows/macOS/Linux) and is all you need for read-only mode.
+bleak>=0.22
+
+# Only needed for --mqtt-host publishing (Phase 2+/M4). Safe to install now.
+paho-mqtt>=2.0
