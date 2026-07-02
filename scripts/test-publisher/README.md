@@ -61,3 +61,33 @@ telegraf.conf conversions match.
 
 Record each tag's MAC → friendly name as you identify them; that mapping is used later
 in RuuviBridge / the `sensor_names` table.
+
+## Running indefinitely (Windows)
+
+`publisher-ctl.ps1` runs the publisher detached with a supervisor that restarts
+it if it crashes. In `--quiet` mode the log only gets tag discoveries and a
+15-minute heartbeat, so it stays small.
+
+From **PowerShell** (in this directory):
+
+```powershell
+.\publisher-ctl.ps1 start     # launch, runs until stopped (survives closing the terminal)
+.\publisher-ctl.ps1 status    # supervisor/publisher PIDs + last log lines
+.\publisher-ctl.ps1 log       # tail the log
+.\publisher-ctl.ps1 stop      # stop BOTH supervisor and publisher
+```
+
+From **WSL**:
+
+```bash
+powershell.exe -ExecutionPolicy Bypass -File \
+  "C:\Users\lauri\OneDrive\code\monitoring\scripts\test-publisher\publisher-ctl.ps1" start   # or stop/status/log
+```
+
+Notes:
+- **Stop uses the script, not taskkill** — killing only `python.exe` makes the
+  supervisor restart it 10 s later; the script stops the supervisor first.
+- It does **not** survive a reboot or sleep — this is still the throwaway test
+  publisher, not a real edge node (that's M5). If the machine slept, just
+  `start` again.
+- Log: `%TEMP%\ruuvi-publisher.log` (fresh on each `start`).

@@ -224,6 +224,7 @@ async def run(args: argparse.Namespace) -> int:
 
     seen: dict[str, Reading] = {}
     last_published_seq: dict[str, int | None] = {}
+    published_count = 0
     stop = asyncio.Event()
 
     def on_detection(device, adv):
@@ -237,7 +238,11 @@ async def run(args: argparse.Namespace) -> int:
             return  # a Ruuvi packet but not DF5 (older format) — ignore for now
         first_time = reading.mac not in seen
         seen[reading.mac] = reading
-        print(reading.as_line(), flush=True)
+        if args.quiet:
+            if first_time:
+                print(f"tag discovered: {reading.mac}", file=sys.stderr, flush=True)
+        else:
+            print(reading.as_line(), flush=True)
 
         if publisher is not None:
             # the Windows BLE stack delivers the same advertisement several times;
@@ -248,6 +253,8 @@ async def run(args: argparse.Namespace) -> int:
             # forward like a real gateway: raw hex, RuuviBridge does the decoding
             topic = f"{args.site}/ruuvi/{reading.mac}"
             publisher.publish(topic, json.dumps(build_gateway_payload(raw, adv.rssi)), qos=0)
+            nonlocal published_count
+            published_count += 1
 
         if args.once and first_time:
             # Stop once we've seen at least one reading from every tag we've found so far.
@@ -271,6 +278,18 @@ async def run(args: argparse.Namespace) -> int:
         file=sys.stderr,
     )
 
+    async def heartbeat():
+        # keeps a long-running quiet log alive and diagnosable
+        while True:
+            await asyncio.sleep(900)
+            print(
+                f"heartbeat: {len(seen)} tag(s), {published_count} published, "
+                f"{datetime.now(timezone.utc).isoformat(timespec='seconds')}",
+                file=sys.stderr, flush=True,
+            )
+
+    hb = asyncio.create_task(heartbeat()) if args.quiet else None
+
     await scanner.start()
     try:
         if args.once:
@@ -281,6 +300,8 @@ async def run(args: argparse.Namespace) -> int:
     except (KeyboardInterrupt, asyncio.CancelledError):
         pass
     finally:
+        if hb is not None:
+            hb.cancel()
         await scanner.stop()
         if publisher is not None:
             publisher.loop_stop()
@@ -328,6 +349,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--once",
         action="store_true",
         help="print readings for a few seconds, then exit (for a quick checkpoint)",
+    )
+    p.add_argument(
+        "--quiet",
+        action="store_true",
+        help="don't print every reading (for long unattended runs); logs tag "
+        "discoveries and a 15-min heartbeat to stderr instead",
     )
     p.add_argument(
         "--once-seconds",
