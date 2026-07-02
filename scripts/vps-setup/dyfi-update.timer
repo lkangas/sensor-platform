@@ -1,0 +1,10 @@
+[Unit]
+Description=Refresh dy.fi binding every 5 days (expiry is 7)
+
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=5d
+RandomizedDelaySec=1h
+
+[Install]
+WantedBy=timers.target

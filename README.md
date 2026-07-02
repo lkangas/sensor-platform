@@ -37,7 +37,8 @@ ansible/    optional fleet management (3+ nodes)
 | Milestone | State |
 |-----------|-------|
 | M0 — Verified data source (Phase 0 test script) | ✅ done — 6 tags read live (DF5) |
-| M1–M8 | not started |
+| M1 — Foundation (VPS hardened, Docker, DNS) | ✅ done — petzval.dy.fi → Hetzner hel1 |
+| M2–M8 | not started |
 
 ## Getting started (M0)
 
