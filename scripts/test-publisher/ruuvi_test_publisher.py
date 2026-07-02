@@ -223,6 +223,7 @@ async def run(args: argparse.Namespace) -> int:
         publisher = _make_publisher(args)
 
     seen: dict[str, Reading] = {}
+    last_published_seq: dict[str, int | None] = {}
     stop = asyncio.Event()
 
     def on_detection(device, adv):
@@ -239,6 +240,11 @@ async def run(args: argparse.Namespace) -> int:
         print(reading.as_line(), flush=True)
 
         if publisher is not None:
+            # the Windows BLE stack delivers the same advertisement several times;
+            # skip re-publishing until the tag's sequence number actually advances
+            if reading.sequence is not None and reading.sequence == last_published_seq.get(reading.mac):
+                return
+            last_published_seq[reading.mac] = reading.sequence
             # forward like a real gateway: raw hex, RuuviBridge does the decoding
             topic = f"{args.site}/ruuvi/{reading.mac}"
             publisher.publish(topic, json.dumps(build_gateway_payload(raw, adv.rssi)), qos=0)
