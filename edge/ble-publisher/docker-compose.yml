@@ -16,6 +16,11 @@ services:
       dockerfile: edge/ble-publisher/Dockerfile
     container_name: ruuvi-ble-publisher
     restart: unless-stopped
+    # Ubuntu's default docker AppArmor profile blocks a container from talking to the
+    # host system D-Bus (denies AddMatch), which bleak needs. Unconfine just this
+    # container -- it's our own code and reaches only the mounted D-Bus socket.
+    security_opt:
+      - apparmor=unconfined
     env_file: ../.env                      # SITE, MQTT_HOST, MQTT_PORT, MQTT_USER, MQTT_PASS
     environment:
       DBUS_SYSTEM_BUS_ADDRESS: unix:path=/run/dbus/system_bus_socket
