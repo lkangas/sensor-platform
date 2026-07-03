@@ -1,0 +1,30 @@
+# Profile C: BlueZ-cooperative BLE publisher — for edge nodes that must SHARE their
+# Bluetooth adapter with a desktop (keyboard/mouse). Scans through bluetoothd over
+# D-Bus (the same path the desktop's peripherals use) instead of seizing the raw HCI
+# socket like ruuvi-go-gateway — so there is no radio contention by construction.
+#
+# Run this INSTEAD of edge/docker-compose.yml on such nodes:
+#   docker compose -f edge/ble-publisher/docker-compose.yml up -d --build
+#
+# Config comes from edge/.env (same file bootstrap-edge.sh writes for Profile B).
+# Requirements on the host: bluetoothd running, adapter powered (set AutoEnable=true
+# in /etc/bluetooth/main.conf so it powers on at boot).
+services:
+  ruuvi-ble-publisher:
+    build:
+      context: ../..                       # repo root; script lives in scripts/test-publisher/
+      dockerfile: edge/ble-publisher/Dockerfile
+    container_name: ruuvi-ble-publisher
+    restart: unless-stopped
+    env_file: ../.env                      # SITE, MQTT_HOST, MQTT_PORT, MQTT_USER, MQTT_PASS
+    environment:
+      DBUS_SYSTEM_BUS_ADDRESS: unix:path=/run/dbus/system_bus_socket
+    volumes:
+      # BlueZ D-Bus socket — scanning goes through bluetoothd, cooperatively.
+      # No NET_ADMIN/NET_RAW, no host networking needed. NOT :ro — D-Bus is a
+      # two-way conversation (we call StartDiscovery), so the socket must be writable.
+      - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket
+    # --stale-exit-seconds: if the BLE scan dies under us (adapter reset/powered
+    # off), exit(3) and let the restart policy recycle the container. It will NOT
+    # power the adapter on — on a desktop node the radio belongs to the user first.
+    command: ["--quiet", "--tls", "--stale-exit-seconds", "180"]

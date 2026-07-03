@@ -1,22 +1,28 @@
 #!/usr/bin/env python3
-"""Phase 0 — local RuuviTag verification (and later, a pipeline smoke-test).
+"""Ruuvi BLE publisher — Phase 0 verification tool AND the Profile C edge runtime.
 
-This is a THROWAWAY verification tool, NOT a real edge node. It exists to answer
-"can I even read my tags?" cheaply, before any VPS or edge hardware is involved,
-and later to smoke-test the ingestion pipeline once the VPS exists.
+Started life as the throwaway Phase 0 "can I even read my tags?" script; promoted to
+double as **edge Profile C**: a BLE scanner for nodes that must share their Bluetooth
+adapter with a desktop (keyboard/mouse on BlueZ). Unlike ruuvi-go-gateway, which
+seizes the raw HCI socket and fights bluetoothd for the radio, this scans *through*
+BlueZ (bleak -> D-Bus) — the same cooperative path the desktop's own peripherals use.
+See edge/ble-publisher/ for the supervised container deployment.
 
-Two modes, matching the plan's Phase 0 steps:
+Modes:
 
-  1. Read-only (default) — scan for RuuviTag advertisements, decode Data Format 5
+  1. Read-only (default) — scan for Ruuvi advertisements, decode Data Format 5
      (RAWv2), and print readings to the console. No MQTT, no VPS dependency.
-     This alone answers "do I get RuuviTag data?".
 
-  2. Publish (--mqtt-host …) — additionally forward each advertisement over MQTT
-     exactly like a real Ruuvi gateway would: topic `<site>/ruuvi/<mac>`, payload in
+  2. Publish (--mqtt-host, or env MQTT_HOST) — forward each Ruuvi advertisement over
+     MQTT exactly like a real Ruuvi gateway: topic `<site>/ruuvi/<mac>`, payload in
      the Ruuvi Gateway JSON format (raw advertisement hex in `data`), which is what
-     RuuviBridge's mqtt_listener expects. This is the M4 pipeline smoke test; the
-     MQTT password comes from --mqtt-pass, $MQTT_PASS, or a .env file next to this
-     script (MQTT_PASS=...), so it never has to appear on a command line.
+     RuuviBridge's mqtt_listener expects. ALL Ruuvi data formats are forwarded
+     (DF5 tags, DF6/E1 Ruuvi Air, …) — decoding stays server-side in RuuviBridge;
+     DF5 is decoded locally only for console display. The MQTT password comes from
+     --mqtt-pass, $MQTT_PASS, or a .env beside this script — never the command line.
+
+Config precedence: CLI args override environment variables (MQTT_HOST, MQTT_PORT,
+MQTT_USER, MQTT_PASS, SITE), which override the .env file beside the script.
 
 Cross-platform via `bleak` (works natively on Windows, macOS, Linux/BlueZ).
 
@@ -28,10 +34,15 @@ Examples
     # print one reading per tag, then exit (handy for a quick checkpoint)
     python ruuvi_test_publisher.py --once
 
-    # M4: also publish to the VPS broker (requires paho-mqtt installed)
+    # M4 smoke test / manual publish run
     python ruuvi_test_publisher.py \
         --mqtt-host metrics.example.com --mqtt-port 8883 --tls \
         --mqtt-user site-test --mqtt-pass '…' --site test
+
+    # Profile C service mode (config from env; exit 3 for supervisor restart if the
+    # BLE scan goes silent — e.g. the adapter was reset under us)
+    MQTT_HOST=… MQTT_USER=site-home MQTT_PASS=… SITE=home \
+        python ruuvi_test_publisher.py --quiet --tls --stale-exit-seconds 180
 """
 
 from __future__ import annotations
@@ -222,45 +233,49 @@ async def run(args: argparse.Namespace) -> int:
     if args.mqtt_host:
         publisher = _make_publisher(args)
 
-    seen: dict[str, Reading] = {}
-    last_published_seq: dict[str, int | None] = {}
+    seen: dict[str, int] = {}              # mac -> data-format byte
+    last_payload: dict[str, bytes] = {}    # mac -> last forwarded payload
     published_count = 0
+    liveness = {"t": time.monotonic()}     # last time ANY advertisement arrived
+    rc = {"code": 0}
     stop = asyncio.Event()
 
     def on_detection(device, adv):
+        liveness["t"] = time.monotonic()   # any device counts: proves the scan is alive
         md = adv.manufacturer_data or {}
         payload = md.get(RUUVI_COMPANY_ID)
         if not payload:
             return  # not a Ruuvi advertisement
         raw = bytes(payload)
         reading = decode_df5(raw, rssi=adv.rssi)
-        if reading is None:
-            return  # a Ruuvi packet but not DF5 (older format) — ignore for now
-        first_time = reading.mac not in seen
-        seen[reading.mac] = reading
+        # Topic identity: DF5 embeds the tag's own MAC in the payload; other Ruuvi
+        # formats (DF6/E1 from a Ruuvi Air) don't, so use the advertisement's source
+        # address — same thing a real gateway reports.
+        mac = reading.mac if reading is not None else (device.address or "").upper()
+        if not mac:
+            return
+        first_time = mac not in seen
+        seen[mac] = raw[0]
         if args.quiet:
             if first_time:
-                print(f"tag discovered: {reading.mac}", file=sys.stderr, flush=True)
-        else:
+                print(f"tag discovered: {mac} (format 0x{raw[0]:02X})", file=sys.stderr, flush=True)
+        elif reading is not None:
             print(reading.as_line(), flush=True)
+        else:
+            print(f"{mac}  df=0x{raw[0]:02X}  {len(raw)}B  rssi={adv.rssi}", flush=True)
 
         if publisher is not None:
-            # the Windows BLE stack delivers the same advertisement several times;
-            # skip re-publishing until the tag's sequence number actually advances
-            if reading.sequence is not None and reading.sequence == last_published_seq.get(reading.mac):
+            # BLE stacks deliver the same advertisement many times; forward only when
+            # the payload changed. For DF5 this equals the old seq-based dedup (seq is
+            # in the payload); for other formats it works without knowing the layout.
+            if last_payload.get(mac) == raw:
                 return
-            last_published_seq[reading.mac] = reading.sequence
+            last_payload[mac] = raw
             # forward like a real gateway: raw hex, RuuviBridge does the decoding
-            topic = f"{args.site}/ruuvi/{reading.mac}"
+            topic = f"{args.site}/ruuvi/{mac}"
             publisher.publish(topic, json.dumps(build_gateway_payload(raw, adv.rssi)), qos=0)
             nonlocal published_count
             published_count += 1
-
-        if args.once and first_time:
-            # Stop once we've seen at least one reading from every tag we've found so far.
-            # There's no fixed expected count, so we settle after a short quiet period
-            # instead — handled by the timeout in the run loop below.
-            pass
 
     scanner = BleakScanner(detection_callback=on_detection)
 
@@ -290,7 +305,43 @@ async def run(args: argparse.Namespace) -> int:
 
     hb = asyncio.create_task(heartbeat()) if args.quiet else None
 
-    await scanner.start()
+    async def scan_liveness_watch():
+        # If BlueZ stops delivering advertisements entirely (adapter reset, powered
+        # off, bluetoothd restarted), exit non-zero so the supervisor (container
+        # restart policy / systemd) recycles us. Deliberately does NOT power the
+        # adapter on: on a desktop node the radio belongs to the user first.
+        while True:
+            await asyncio.sleep(5)
+            quiet_for = time.monotonic() - liveness["t"]
+            if quiet_for > args.stale_exit_seconds:
+                print(
+                    f"no BLE advertisements for {quiet_for:.0f}s — "
+                    "exiting for supervisor restart",
+                    file=sys.stderr, flush=True,
+                )
+                rc["code"] = 3
+                stop.set()
+                return
+
+    watch = (
+        asyncio.create_task(scan_liveness_watch())
+        if (args.stale_exit_seconds > 0 and not args.once)
+        else None
+    )
+
+    try:
+        await scanner.start()
+    except Exception as exc:  # adapter off/absent, D-Bus unreachable, …
+        print(f"BLE scan could not start: {exc}", file=sys.stderr, flush=True)
+        if hb is not None:
+            hb.cancel()
+        if watch is not None:
+            watch.cancel()
+        if publisher is not None:
+            publisher.loop_stop()
+            publisher.disconnect()
+        return 4
+
     try:
         if args.once:
             # Give the radio a few seconds to hear each nearby tag at least once.
@@ -302,10 +353,15 @@ async def run(args: argparse.Namespace) -> int:
     finally:
         if hb is not None:
             hb.cancel()
+        if watch is not None:
+            watch.cancel()
         await scanner.stop()
         if publisher is not None:
             publisher.loop_stop()
             publisher.disconnect()
+
+    if rc["code"]:
+        return rc["code"]
 
     if not seen:
         print(
@@ -336,7 +392,21 @@ def _make_publisher(args: argparse.Namespace):
         client.username_pw_set(args.mqtt_user, password or "")
     if args.tls:
         client.tls_set()  # system CA bundle; the VPS cert is Let's Encrypt (Phase 2)
-    client.connect(args.mqtt_host, args.mqtt_port, keepalive=30)
+
+    # gw_status parity with ruuvi-go-gateway: retained online on (re)connect, LWT
+    # offline if we vanish. Signature uses *rest to fit both paho 1.x and 2.x.
+    status_topic = f"{args.site}/ruuvi/gw_status"
+    client.will_set(status_topic, json.dumps({"state": "offline"}), qos=0, retain=True)
+
+    def _on_connect(cl, *_rest):
+        cl.publish(status_topic, json.dumps({"state": "online"}), qos=0, retain=True)
+
+    client.on_connect = _on_connect
+    client.reconnect_delay_set(min_delay=1, max_delay=30)
+    # connect_async + loop_start: retries in the background forever, so a broker
+    # outage (at start or later) never kills the process — readings during the gap
+    # are simply dropped, matching real-gateway behaviour.
+    client.connect_async(args.mqtt_host, args.mqtt_port, keepalive=30)
     client.loop_start()
     return client
 
@@ -362,16 +432,30 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=8.0,
         help="how long to scan in --once mode (default: 8)",
     )
-    # MQTT publishing — Phase 2+/M4; requires the VPS broker to exist.
-    p.add_argument("--mqtt-host", help="Mosquitto host; enables MQTT publishing")
-    p.add_argument("--mqtt-port", type=int, default=8883)
-    p.add_argument("--mqtt-user")
+    # MQTT publishing — Phase 2+/M4, and Profile C service mode. CLI overrides env
+    # (MQTT_HOST/MQTT_PORT/MQTT_USER/SITE), which a supervisor can inject wholesale.
+    p.add_argument(
+        "--mqtt-host",
+        default=os.environ.get("MQTT_HOST"),
+        help="Mosquitto host; enables MQTT publishing (env: MQTT_HOST)",
+    )
+    p.add_argument("--mqtt-port", type=int, default=int(os.environ.get("MQTT_PORT", "8883")))
+    p.add_argument("--mqtt-user", default=os.environ.get("MQTT_USER"))
     p.add_argument("--mqtt-pass", help="or set $MQTT_PASS / MQTT_PASS= in .env beside the script")
     p.add_argument("--tls", action="store_true", help="use TLS for the MQTT connection")
     p.add_argument(
         "--site",
-        default="test",
-        help="site name used in the topic prefix `<site>/ruuvi/<id>` (default: test)",
+        default=os.environ.get("SITE", "test"),
+        help="site name used in the topic prefix `<site>/ruuvi/<id>` "
+        "(env: SITE; default: test)",
+    )
+    p.add_argument(
+        "--stale-exit-seconds",
+        type=float,
+        default=0.0,
+        help="exit(3) if NO BLE advertisements arrive for this long — lets a "
+        "supervisor restart a scan that died under us (0 = disabled; ignored "
+        "with --once)",
     )
     return p.parse_args(argv)
 
