@@ -19,6 +19,16 @@ CREATE TABLE sensor_readings (
     accel_z      DOUBLE PRECISION,
     movement_ctr INTEGER,
     seq          INTEGER,
+    -- Ruuvi Air (data format E1) — populated only for Air units, NULL for tags.
+    -- Names/units confirmed against RuuviBridge parser/measurement.go + format_e1.go.
+    pm1_0        DOUBLE PRECISION,   -- particulate matter <1.0 µm, µg/m³
+    pm2_5        DOUBLE PRECISION,   -- PM <2.5 µm, µg/m³
+    pm4_0        DOUBLE PRECISION,   -- PM <4.0 µm, µg/m³
+    pm10_0       DOUBLE PRECISION,   -- PM <10 µm, µg/m³
+    co2          DOUBLE PRECISION,   -- ppm
+    voc          DOUBLE PRECISION,   -- VOC index (Sensirion, ~1–500, unitless)
+    nox          DOUBLE PRECISION,   -- NOx index (Sensirion, ~1–500, unitless)
+    lux          DOUBLE PRECISION,   -- illuminance, lux
     extras       JSONB            -- anything the fixed columns don't cover, no migration needed
 );
 

@@ -53,6 +53,14 @@ docker compose ps
   site: new config-<site>.yml + compose service + ACL entry + passwd user.
 - **Telegraf whitelists fields** (`fieldinclude`) so an unexpected field can
   never ALTER the table; unknown data belongs in `extras` (future sources).
+- **Ruuvi Air (data format E1)** rides the existing `ruuvi` pipeline unchanged —
+  same gateway, same `<site>/ruuvi/<mac>` topics, same per-site RuuviBridge (it
+  decodes E1). Air rows differ only by which columns are populated (`co2`, `pm2_5`,
+  `voc`, …), not by `source`. The `sensor_readings` columns + Telegraf whitelist are
+  staged; on the **live** DB apply the columns once:
+  `docker compose exec -T timescaledb psql -U postgres -d sensors < db/migrations/001_air_quality.sql`,
+  then `docker compose restart telegraf`. Fresh rebuilds get the columns from
+  `db/init/001_schema.sql` automatically.
 - **Provisional until M4:** RuuviBridge's exact JSON field names/units
   (camelCase, pressure Pa, battery V assumed) — the starlark/rename blocks in
   telegraf.conf encode the assumptions and get verified against live data.
