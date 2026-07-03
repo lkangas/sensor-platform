@@ -49,7 +49,7 @@ in `data`) — RuuviBridge does the decoding server-side.
 ```
 # password: --mqtt-pass, $MQTT_PASS, or a git-ignored .env here (MQTT_PASS=...)
 python ruuvi_test_publisher.py --once --once-seconds 75 \
-    --mqtt-host petzval.dy.fi --mqtt-port 8883 --tls \
+    --mqtt-host vps.example.com --mqtt-port 8883 --tls \
     --mqtt-user site-test --site test
 ```
 
@@ -81,7 +81,7 @@ From **WSL**:
 
 ```bash
 powershell.exe -ExecutionPolicy Bypass -File \
-  "C:\Users\lauri\OneDrive\code\monitoring\scripts\test-publisher\publisher-ctl.ps1" start   # or stop/status/log
+  "C:\Users\<you>\OneDrive\code\monitoring\scripts\test-publisher\publisher-ctl.ps1" start   # or stop/status/log
 ```
 
 Notes:

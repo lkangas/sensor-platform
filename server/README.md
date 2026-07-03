@@ -31,7 +31,7 @@ docker compose ps
 
 ## Checkpoints
 
-- **M2:** all containers healthy; `https://petzval.dy.fi` shows the Grafana login
+- **M2:** all containers healthy; `https://vps.example.com` shows the Grafana login
   over a valid certificate.
 - **M3:** `docker compose exec timescaledb psql -U postgres -d sensors -c
   "SELECT * FROM timescaledb_information.hypertables;"` lists `sensor_readings`.

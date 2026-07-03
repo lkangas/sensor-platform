@@ -1,7 +1,7 @@
 -- Migration 001 — Ruuvi Air (data format E1) columns
 --
 -- WHY THIS FILE EXISTS: init/001_schema.sql runs ONLY on first DB startup (empty
--- volume). The DB at petzval is already live, so these columns must be added to it
+-- volume). The DB is already live in production, so these columns must be added to it
 -- once, by hand. A fresh rebuild gets them inline from 001_schema.sql and never
 -- needs this file. The two are kept in sync deliberately.
 --

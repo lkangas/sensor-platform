@@ -12,7 +12,7 @@ rebuild. To make a change permanent, pull it back into the repo:
 
 1. **Design** in the browser. Edit an existing dashboard, or build a new one
    (New → Dashboard). Save it in the UI.
-2. **Find its uid** — it's in the URL: `https://petzval.dy.fi/d/<uid>/<slug>`.
+2. **Find its uid** — it's in the URL: `https://vps.example.com/d/<uid>/<slug>`.
 3. **Pull it into the repo:**
    ```bash
    scripts/grafana-pull-dashboard.sh <uid>

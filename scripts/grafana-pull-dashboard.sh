@@ -3,9 +3,10 @@
 # provisioning JSON, ready to commit.
 #
 #   usage: scripts/grafana-pull-dashboard.sh <dashboard-uid> [outfile.json]
+#   env:   SSH_TARGET (required, e.g. you@vps.example.com); REMOTE_DIR (optional)
 #
 # Find the uid in the browser: open the dashboard, its URL is
-#   https://petzval.dy.fi/d/<uid>/<slug>
+#   https://vps.example.com/d/<uid>/<slug>
 # Default output file is server/grafana/provisioning/dashboards/<uid>.json
 #
 # Fetches via the Grafana API using the admin password from the VPS .env (never
@@ -16,7 +17,7 @@
 set -euo pipefail
 
 DASH_UID="${1:?usage: grafana-pull-dashboard.sh <dashboard-uid> [outfile.json]}"
-SSH_TARGET="${SSH_TARGET:-lauri@petzval.dy.fi}"
+SSH_TARGET="${SSH_TARGET:?set SSH_TARGET, e.g. you@vps.example.com}"
 REMOTE_DIR="${REMOTE_DIR:-\$HOME/sensor-platform/server}"
 DASH_DIR="$(cd "$(dirname "$0")/.." && pwd)/server/grafana/provisioning/dashboards"
 

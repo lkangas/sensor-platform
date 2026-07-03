@@ -37,8 +37,8 @@ ansible/    optional fleet management (3+ nodes)
 | Milestone | State |
 |-----------|-------|
 | M0 — Verified data source (Phase 0 test script) | ✅ done — 6 tags read live (DF5) |
-| M1 — Foundation (VPS hardened, Docker, DNS) | ✅ done — petzval.dy.fi → Hetzner hel1 |
-| M2 — Server up (stack healthy, HTTPS) | ✅ done — https://petzval.dy.fi + MQTTS 8883 |
+| M1 — Foundation (VPS hardened, Docker, DNS) | ✅ done — vps.example.com → Hetzner hel1 |
+| M2 — Server up (stack healthy, HTTPS) | ✅ done — https://vps.example.com + MQTTS 8883 |
 | M3 — Schema live (hypertable + caggs) | ✅ done — sensor_readings + hourly rollup |
 | M4 — Glue proven (publish → decode → DB) | ✅ done — 8 tags, 37 rows on first run |
 | M6 — Dashboards & alerts as code | ✅ done — overview dashboard; low-battery alert fire-tested |

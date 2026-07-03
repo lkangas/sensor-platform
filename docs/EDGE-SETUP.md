@@ -1,7 +1,7 @@
 # Edge node setup — plan & runbook (M5 / M7)
 
 Everything that happens when you add a real site (home, summer place, …). The
-central stack (M0–M4, M6) is already live at `petzval.dy.fi`; an edge node is a
+central stack (M0–M4, M6) is already live at `vps.example.com`; an edge node is a
 "dumb" box that scans RuuviTags over Bluetooth and forwards them to it. Nothing
 central needs redesigning per site — this document is the repeatable procedure.
 
@@ -12,7 +12,7 @@ Read top to bottom once. Then per node it's: **buy → flash → one command →
 ## 1. What an edge node actually does
 
 ```
-RuuviTags ──BLE──► [edge node: ruuvi-go-gateway] ──MQTT/TLS 8883──► petzval.dy.fi
+RuuviTags ──BLE──► [edge node: ruuvi-go-gateway] ──MQTT/TLS 8883──► vps.example.com
                     scan + forward, nothing else        outbound only
 ```
 
@@ -93,7 +93,7 @@ Done on the VPS before/at provisioning. Files are already staged in the repo for
 `home` and `summer`; this is what to actually run.
 
 ```bash
-ssh lauri@petzval.dy.fi
+ssh you@vps.example.com
 cd ~/sensor-platform && git pull
 cd server
 
@@ -233,7 +233,7 @@ Insert a small **local Mosquitto broker** on the edge node, bridged to the VPS:
 RuuviTags ─BLE─► ruuvi-go-gateway ─► localhost:1883 (local mosquitto)
                                           │  bridge: TLS, QoS 1, persistent session
                                           ▼  queues while VPS down, flushes on reconnect
-                               petzval.dy.fi:8883 ─► (rest of pipeline unchanged)
+                               vps.example.com:8883 ─► (rest of pipeline unchanged)
 ```
 
 - The gateway publishes to `localhost` (always reachable) → it never loses a

@@ -2,11 +2,11 @@
 
 What was done to the VPS in M1 (Phase 1), so the box can be rebuilt from this
 document. Performed 2026-07-02 on a Hetzner CX23-class server, Helsinki (hel1),
-Ubuntu 26.04 LTS, host `sensors`, IP `95.216.138.33`, name **petzval.dy.fi**.
+Ubuntu 26.04 LTS, host `sensors`, IP `<vps-ip>`, name **vps.example.com**.
 
 ## Users & SSH
 
-- Non-root sudo user `lauri` (passwordless sudo — the account is key-only, no
+- Non-root sudo user `<user>` (passwordless sudo — the account is key-only, no
   password exists; SSH key = the same ed25519 key used locally).
 - `/etc/ssh/sshd_config.d/10-hardening.conf`:
   ```
@@ -55,7 +55,7 @@ sudo systemctl restart fail2ban
 
 ## Docker
 
-Installed via get.docker.com (Engine 29.x + compose plugin v5.x); `lauri` in the
+Installed via get.docker.com (Engine 29.x + compose plugin v5.x); `<user>` in the
 `docker` group.
 
 ## dy.fi dynamic DNS
@@ -73,5 +73,5 @@ binds the name to the request's source IP.
 
 ## Checkpoint (passed)
 
-- `docker run --rm hello-world` works as `lauri` without sudo
-- `dig +short petzval.dy.fi` → `95.216.138.33` from an external network
+- `docker run --rm hello-world` works as `<user>` without sudo
+- `dig +short vps.example.com` → `<vps-ip>` from an external network
