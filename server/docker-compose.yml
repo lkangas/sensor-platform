@@ -56,6 +56,15 @@ services:
     depends_on:
       - mosquitto
 
+  # Decoder for site 'home' (M5 — first real edge node).
+  ruuvibridge-home:
+    image: ghcr.io/scrin/ruuvibridge:latest
+    restart: unless-stopped
+    volumes:
+      - ./ruuvibridge/config-home.yml:/config.yml:ro
+    depends_on:
+      - mosquitto
+
   telegraf:
     image: telegraf:latest
     restart: unless-stopped
