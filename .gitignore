@@ -28,6 +28,9 @@ __pycache__/
 venv/
 *.egg-info/
 
+# Local-only notes (personal machine setup, hostnames, etc. — not for a public repo)
+docs/local/
+
 # Editor / OS
 .vscode/
 .idea/
