@@ -304,6 +304,25 @@ completeness.
 
 ---
 
+## Gateway reliability — the silent BLE wedge
+
+`ruuvi-go-gateway` scans via a raw Bluetooth HCI socket and **stops silently** if the
+adapter is reset (suspend/resume, `systemctl restart bluetooth`, `rfkill`, or BlueZ
+contention on a node that also runs a desktop): the process stays up and MQTT stays
+connected, but it publishes nothing — and `restart: unless-stopped` can't catch it
+because nothing crashes.
+
+- **Auto-recover:** install `edge/watchdog/ruuvi-gateway-watchdog.sh` (user cron or a
+  root systemd timer — see `edge/watchdog/README.md`). It restarts the gateway when it
+  detects the wedge signature (`unixPoll events 0x0008`).
+- **Rule of thumb:** after any manual Bluetooth reset on a node, `docker restart
+  ruuvi-go-gateway` (the watchdog catches it within ~5 min otherwise).
+- **Desktop nodes** — BlueZ driving a keyboard/mouse on the same radio as the raw-HCI
+  scan — are the most exposed; a dedicated USB BT dongle for the gateway removes the
+  contention.
+
+---
+
 ## 9. Scaling beyond two nodes (M7 / M8, later)
 
 - **Tier 1 — bootstrap script (now):** what §5 uses. Good to a handful of nodes.
@@ -330,6 +349,7 @@ completeness.
 | `server/ruuvibridge/config-{home,summer}.yml` | per-site decoders (staged) |
 | `server/mosquitto/acl` | per-site write permissions (home + summer staged) |
 | `edge/store-and-forward/mosquitto.conf.template` | §8 local buffering broker (deferrable) |
+| `edge/watchdog/` | gateway watchdog — auto-restart on the silent BLE wedge |
 
 ---
 
