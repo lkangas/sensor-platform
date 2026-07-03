@@ -103,7 +103,7 @@ PASS=$(openssl rand -base64 18 | tr -d '/+=')
 docker run --rm -v "$PWD/mosquitto:/work" eclipse-mosquitto:2 \
   mosquitto_passwd -b /work/passwd "site-$SITE" "$PASS"
 sudo chown 1883:1883 mosquitto/passwd && sudo chmod 600 mosquitto/passwd
-docker compose exec mosquitto kill -HUP 1     # reload passwd without downtime
+docker compose exec mosquitto pkill -HUP mosquitto   # reload passwd, no downtime (signal mosquitto itself — PID 1 is the cert-sync wrapper)
 echo "site-$SITE password: $PASS"             # -> put in your password manager
 
 # 4b. start that site's RuuviBridge decoder (config already committed)
