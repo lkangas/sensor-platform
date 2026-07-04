@@ -1,0 +1,13 @@
+[Unit]
+Description=Publish host SoC temperature + Pi throttle state to MQTT (source=host)
+After=network-online.target
+
+[Service]
+# Runs as a systemd USER service, so %h resolves to the repo owner's home — no hard-coded
+# user/path in the repo. Install: see README.md (enable --now + loginctl enable-linger).
+ExecStart=%h/sensor-platform/edge/host-metrics/publish-host-metrics.sh
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=default.target

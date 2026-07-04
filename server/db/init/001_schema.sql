@@ -29,6 +29,8 @@ CREATE TABLE sensor_readings (
     voc          DOUBLE PRECISION,   -- VOC index (Sensirion, ~1–500, unitless)
     nox          DOUBLE PRECISION,   -- NOx index (Sensirion, ~1–500, unitless)
     lux          DOUBLE PRECISION,   -- illuminance, lux
+    -- Host/node metrics (source='host'): SoC temperature reuses 'temperature' above.
+    throttled    INTEGER,            -- Raspberry Pi vcgencmd get_throttled bitmask (0 = healthy)
     extras       JSONB            -- anything the fixed columns don't cover, no migration needed
 );
 
