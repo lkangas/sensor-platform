@@ -65,6 +65,19 @@ services:
     depends_on:
       - mosquitto
 
+  # Fills the gap RuuviBridge leaves: decodes Ruuvi Air data format E1 (BT5 extended
+  # advertisement — PM1.0/PM4.0/PM10.0 + hi-res PM2.5) from the raw <site>/ruuvi/<mac>
+  # topics and republishes into decoded/<site>/ruuvi/<mac>. RuuviBridge still handles
+  # DF6 and all tags; this only acts on E1. (Air has no light sensor → lux stays NULL.)
+  air-e1-decoder:
+    build: ./air-e1-decoder
+    restart: unless-stopped
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_PORT: "1883"
+    depends_on:
+      - mosquitto
+
   telegraf:
     image: telegraf:latest
     restart: unless-stopped
