@@ -96,7 +96,7 @@
     {
       "id": 4,
       "type": "timeseries",
-      "title": "Particulate matter PM2.5 (µg/m³)",
+      "title": "Particulate matter (µg/m³)",
       "gridPos": { "h": 9, "w": 12, "x": 12, "y": 9 },
       "datasource": { "type": "postgres", "uid": "timescaledb" },
       "fieldConfig": {
@@ -111,13 +111,10 @@
         "tooltip": { "mode": "multi", "sort": "desc" }
       },
       "targets": [
-        {
-          "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "format": "time_series",
-          "rawQuery": true,
-          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.pm2_5\nFROM sensor_readings sr\nJOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND sr.pm2_5 IS NOT NULL\nORDER BY 1"
-        }
+        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", 'PM1.0' AS metric, sr.pm1_0\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND sr.pm1_0 IS NOT NULL\nORDER BY 1" },
+        { "refId": "B", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", 'PM2.5' AS metric, sr.pm2_5\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND sr.pm2_5 IS NOT NULL\nORDER BY 1" },
+        { "refId": "C", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", 'PM4.0' AS metric, sr.pm4_0\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND sr.pm4_0 IS NOT NULL\nORDER BY 1" },
+        { "refId": "D", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", 'PM10.0' AS metric, sr.pm10_0\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND sr.pm10_0 IS NOT NULL\nORDER BY 1" }
       ]
     },
     {
