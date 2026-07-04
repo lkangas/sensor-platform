@@ -15,7 +15,8 @@ if [ -z "${SITE:-}" ] || [ -z "${MQTT_HOST:-}" ]; then   # container passes thes
   set -a; . "$ENV_FILE"; set +a
 fi
 INTERVAL="${HOST_METRICS_INTERVAL:-30}"
-BASE="${SITE}/host/$(hostname)"
+NODE="${HOST_NODE:-$(hostname)}"   # containers see their own id; HOST_NODE overrides
+BASE="${SITE}/host/${NODE}"
 
 pub(){ mosquitto_pub -h "$MQTT_HOST" -p "${MQTT_PORT:-8883}" -u "$MQTT_USER" -P "$MQTT_PASS" \
         --capath /etc/ssl/certs -t "$1" -m "$2" || echo "host-metrics: publish failed ($1)" >&2; }

@@ -9,6 +9,8 @@ services:
     build: .
     container_name: host-metrics
     restart: unless-stopped
+    environment:
+      HOST_NODE: ${HOST_NODE:-}   # the host's real hostname; deploy with HOST_NODE=$(hostname)
     env_file: ../.env            # SITE + MQTT creds (already present for the edge)
     volumes:
       - /sys:/sys:ro             # hwmon (temps), powercap (RAPL), cpufreq
