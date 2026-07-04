@@ -153,24 +153,6 @@
           "rawSql": "SELECT sr.\"time\", 'NOx' AS metric, sr.nox\nFROM sensor_readings sr\nJOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND sr.nox IS NOT NULL\nORDER BY 1"
         }
       ]
-    },
-    {
-      "id": 6,
-      "type": "table",
-      "title": "Latest readings",
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 27 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": { "custom": { "align": "auto" } }, "overrides": [] },
-      "options": { "showHeader": true },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT DISTINCT ON (sr.sensor_id)\n  COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS \"Sensor\",\n  round(sr.temperature::numeric, 1) AS \"Temp °C\",\n  round(sr.humidity::numeric, 0)   AS \"Hum %\",\n  round(sr.pm2_5::numeric, 1)      AS \"PM2.5\",\n  round(sr.co2::numeric, 0)        AS \"CO₂ ppm\",\n  round(sr.voc::numeric, 0)        AS \"VOC\",\n  round(sr.nox::numeric, 0)        AS \"NOx\"\nFROM sensor_readings sr\nJOIN sensor_meta m USING (sensor_id)\nWHERE m.owner = 'mine' AND sr.\"time\" > now() - interval '1 hour'\nORDER BY sr.sensor_id, sr.\"time\" DESC"
-        }
-      ]
     }
   ]
 }
