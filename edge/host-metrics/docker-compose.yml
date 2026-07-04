@@ -1,0 +1,14 @@
+# Host-metrics publisher as a CONTAINER — for edge hosts WITHOUT mosquitto-clients or
+# passwordless sudo (e.g. fresnel). Runs the same publish-host-metrics.sh; reads CPU stats
+# from the container's /proc (already host-wide) and temps/power from the host /sys (mounted
+# read-only), running as root so it can read the RAPL energy counter. On a node that has
+# mosquitto-clients (a Pi), use the systemd user service instead (see README).
+#   deploy:  docker compose -f edge/host-metrics/docker-compose.yml up -d --build
+services:
+  host-metrics:
+    build: .
+    container_name: host-metrics
+    restart: unless-stopped
+    env_file: ../.env            # SITE + MQTT creds (already present for the edge)
+    volumes:
+      - /sys:/sys:ro             # hwmon (temps), powercap (RAPL), cpufreq

@@ -31,6 +31,15 @@ CREATE TABLE sensor_readings (
     lux          DOUBLE PRECISION,   -- illuminance, lux
     -- Host/node metrics (source='host'): SoC temperature reuses 'temperature' above.
     throttled    INTEGER,            -- Raspberry Pi vcgencmd get_throttled bitmask (0 = healthy)
+    cpu_pct      DOUBLE PRECISION,   -- CPU utilisation %
+    cpu_load1    DOUBLE PRECISION,   -- 1-min load average
+    cpu_mhz      INTEGER,            -- avg current CPU clock, MHz
+    mem_pct      DOUBLE PRECISION,   -- memory used %
+    disk_pct     DOUBLE PRECISION,   -- root filesystem used %
+    core_volt    DOUBLE PRECISION,   -- Pi core voltage, V
+    wifi_rssi    INTEGER,            -- Wi-Fi signal, dBm
+    power_w      DOUBLE PRECISION,   -- CPU package power (Intel RAPL), W
+    ssd_temp     DOUBLE PRECISION,   -- SSD/NVMe composite temp, °C
     extras       JSONB            -- anything the fixed columns don't cover, no migration needed
 );
 
