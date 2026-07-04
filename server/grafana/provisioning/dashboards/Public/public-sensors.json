@@ -90,6 +90,30 @@
       "targets": [
         { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.nox\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Koti' AND sr.nox IS NOT NULL\nORDER BY 1" }
       ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Pressure (hPa)",
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 27 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": { "defaults": { "unit": "pressurehpa", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.pressure\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Koti' AND sr.pressure IS NOT NULL\nORDER BY 1" }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Measurement index (sequence #)",
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 27 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.seq\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Koti' AND sr.seq IS NOT NULL\nORDER BY 1" }
+      ]
     }
   ]
 }
