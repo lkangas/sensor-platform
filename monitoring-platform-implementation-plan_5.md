@@ -707,6 +707,13 @@ pipeline change.
   on each edge device (default on most Linux distros). Simplest correctness choice: rely
   on the server-side ingest timestamp, or have each source's decoder/gateway attach
   timestamps — just be consistent across sources.
+- **Sensor cross-calibration.** Sensors of the same type rarely read identically. To
+  correct, do a one-off calibration run: co-locate all the sensors in a stable, well-mixed
+  spot (e.g. bundled together, insulated) for a period, then over that window compute each
+  sensor's mean offset from the group mean and store it as a per-sensor correction term
+  (e.g. temperature/humidity offset held with the sensor's metadata) applied at query
+  time. Re-run whenever a sensor is added or replaced. Deferred until there's a run to
+  derive it from.
 - **Flaky summer-place internet.** MQTT tolerates high latency and reconnects on its own,
   so brief outages just cause gaps. But most gateways/publishers forward in real time and
   do **not** buffer across long outages — if gap-free history from a site matters, add a
