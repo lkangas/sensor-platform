@@ -712,6 +712,13 @@ pipeline change.
   exist, so this is mainly "compress sooner?" and "add a 1-min tier and drop raw after N
   days?". Quick win: drop redundant duplicate-gateway rows (e.g. a temporary second
   collector publishing the same tags under a different site).
+  **Sizing snapshot (2026-07-04):** ~180 MB/day uncompressed (both gateways; ~90 MB/day
+  one), ~680k rows/day, nothing compressed yet (chunks < 7 d), VPS disk ~40 GB.
+  **Recommended defaults — DEFERRED, user decides later:** (1) compress raw after ~2 days
+  (lossless, keeps full resolution); (2) add a 1-minute continuous aggregate and drop raw
+  after ~1 year — or just keep everything compressed at full resolution and add the
+  downsample tier only if disk tightens. Lean: do (1) now, defer (2). The hard requirement
+  is full resolution for **at least 1–2 days**.
 - **Server updates.** `docker compose pull && docker compose up -d` on a cadence. Read
   TimescaleDB release notes before any **major** Postgres version jump (that's a
   migration, not a simple pull).
