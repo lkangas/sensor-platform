@@ -36,6 +36,9 @@ docs/local/
 # and the loader are committed. Same model as .env.
 server/db/sensor-meta/tags.csv
 
+# Private "other" dashboard (owner=other) — provisioned on the VPS only, never committed.
+server/grafana/provisioning/dashboards/Private/other-sensors.json
+
 # Editor / OS
 .vscode/
 .idea/

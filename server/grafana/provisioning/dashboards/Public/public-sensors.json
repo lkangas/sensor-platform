@@ -6,7 +6,7 @@
   "tags": ["public"],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 3,
+  "version": 4,
   "editable": true,
   "refresh": "1m",
   "time": { "from": "now-24h", "to": "now" },
@@ -123,8 +123,8 @@
     {
       "id": 5,
       "type": "timeseries",
-      "title": "VOC / NOx (Sensirion index, ~1–500)",
-      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 18 },
+      "title": "VOC (Sensirion index)",
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 18 },
       "datasource": { "type": "postgres", "uid": "timescaledb" },
       "fieldConfig": {
         "defaults": {
@@ -143,14 +143,34 @@
           "datasource": { "type": "postgres", "uid": "timescaledb" },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT sr.\"time\", 'VOC' AS metric, sr.voc\nFROM sensor_readings sr\nJOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND sr.voc IS NOT NULL\nORDER BY 1"
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.voc\nFROM sensor_readings sr\nJOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND sr.voc IS NOT NULL\nORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "NOx (Sensirion index)",
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 18 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "never", "spanNulls": true }
         },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
         {
-          "refId": "B",
+          "refId": "A",
           "datasource": { "type": "postgres", "uid": "timescaledb" },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT sr.\"time\", 'NOx' AS metric, sr.nox\nFROM sensor_readings sr\nJOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND sr.nox IS NOT NULL\nORDER BY 1"
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.nox\nFROM sensor_readings sr\nJOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND sr.nox IS NOT NULL\nORDER BY 1"
         }
       ]
     }
