@@ -86,6 +86,15 @@ services:
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_SERVER_ROOT_URL: https://petzval.dy.fi
       GRAFANA_DB_PASS: ${GRAFANA_DB_PASS}   # interpolated in datasource provisioning
+      # Public, read-only view: anyone reaching the site sees the "Public" folder
+      # dashboards without logging in. Folder permissions (set via API) keep the
+      # "Private" folder admin-only, so logging in exposes the detailed dashboards.
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_AUTH_ANONYMOUS_ORG_NAME: "Main Org."
+      GF_AUTH_ANONYMOUS_HIDE_VERSION: "true"
+      # Land anonymous visitors straight on the simple public dashboard.
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/provisioning/dashboards/Public/public-sensors.json
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro

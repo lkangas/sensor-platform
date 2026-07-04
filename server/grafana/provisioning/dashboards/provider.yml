@@ -14,4 +14,7 @@ providers:
     allowUiUpdates: true
     options:
       path: /etc/grafana/provisioning/dashboards
-      foldersFromFilesStructure: false
+      # Each subdirectory under path becomes a Grafana folder named after it:
+      #   dashboards/Public/*   -> "Public" folder (anonymous-visible)
+      #   dashboards/Private/*  -> "Private" folder (admin-only; perms set via API)
+      foldersFromFilesStructure: true

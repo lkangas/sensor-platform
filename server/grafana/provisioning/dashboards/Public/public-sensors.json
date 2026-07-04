@@ -1,0 +1,142 @@
+{
+  "annotations": { "list": [] },
+  "id": null,
+  "uid": "public-sensors",
+  "title": "Sensors",
+  "tags": ["public"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "refresh": "1m",
+  "time": { "from": "now-24h", "to": "now" },
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Temperature",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "showPoints": "never", "lineWidth": 2, "fillOpacity": 5 }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "min", "max"] },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS sensor, sr.temperature\nFROM sensor_readings sr\nJOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine'\nORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Humidity",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "humidity",
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "showPoints": "never", "lineWidth": 2, "fillOpacity": 5 }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull", "min", "max"] },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS sensor, sr.humidity\nFROM sensor_readings sr\nJOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine'\nORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "CO₂ (ppm)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ppm",
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "showPoints": "never", "lineWidth": 2, "fillOpacity": 5 }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS sensor, sr.co2\nFROM sensor_readings sr\nJOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND sr.co2 IS NOT NULL\nORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Particulate matter PM2.5 (µg/m³)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "conμgm3",
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "showPoints": "never", "lineWidth": 2, "fillOpacity": 5 }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS sensor, sr.pm2_5\nFROM sensor_readings sr\nJOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND sr.pm2_5 IS NOT NULL\nORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "Latest readings",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": { "defaults": { "custom": { "align": "auto" } }, "overrides": [] },
+      "options": { "showHeader": true },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT DISTINCT ON (sr.sensor_id)\n  COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS \"Sensor\",\n  round(sr.temperature::numeric, 1) AS \"Temp °C\",\n  round(sr.humidity::numeric, 0)   AS \"Hum %\",\n  round(sr.co2::numeric, 0)        AS \"CO₂ ppm\",\n  round(sr.voc::numeric, 0)        AS \"VOC\"\nFROM sensor_readings sr\nJOIN sensor_meta m USING (sensor_id)\nWHERE m.owner = 'mine' AND sr.\"time\" > now() - interval '1 hour'\nORDER BY sr.sensor_id, sr.\"time\" DESC"
+        }
+      ]
+    }
+  ]
+}
