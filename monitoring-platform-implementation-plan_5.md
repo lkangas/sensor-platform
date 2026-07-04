@@ -700,6 +700,18 @@ pipeline change.
   snapshot the Docker volumes if your provider supports it.
 - **Disk watch.** Compression + retention keep growth bounded, but alert on VPS disk
   usage anyway.
+- **Data lifecycle & resolution tiers (policy to confirm).** Raw beacons arrive at
+  ~0.8 Hz/tag, so full-resolution storage grows quickly. Two independent levers:
+  **compression is lossless** — it shrinks storage ~10–15× while keeping *every* beacon, so
+  full resolution stays cheap for a long time; **downsampling** trades resolution for space
+  (keep per-bucket min/avg/max, drop the raw). Target shape: raw **uncompressed for ~1–2
+  days** (fast, full detail for spotting quick changes) → **compressed raw** for the medium
+  term (still full resolution) → **downsampled** older data via a 1-minute continuous
+  aggregate plus the existing hourly rollup, with raw dropped. Decide the crossover days and
+  which continuous aggregates to add — compression (7 d) and raw retention (365 d) already
+  exist, so this is mainly "compress sooner?" and "add a 1-min tier and drop raw after N
+  days?". Quick win: drop redundant duplicate-gateway rows (e.g. a temporary second
+  collector publishing the same tags under a different site).
 - **Server updates.** `docker compose pull && docker compose up -d` on a cadence. Read
   TimescaleDB release notes before any **major** Postgres version jump (that's a
   migration, not a simple pull).
