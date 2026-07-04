@@ -31,6 +31,11 @@ venv/
 # Local-only notes (personal machine setup, hostnames, etc. — not for a public repo)
 docs/local/
 
+# Private tag metadata: friendly names + owner/category per MAC. The DATA is personal
+# (whose tag, which room) and stays out of the public repo — only the .example template
+# and the loader are committed. Same model as .env.
+server/db/sensor-meta/tags.csv
+
 # Editor / OS
 .vscode/
 .idea/
