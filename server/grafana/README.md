@@ -33,6 +33,22 @@ Or just tell Claude "I made a dashboard `<uid>`, commit it" and it runs the pull
   works as-is on any rebuild.
 - The pull strips the internal `id` and `version` so files stay portable.
 
+## Panel query pattern (Koti / Vaunu)
+
+The environmental panels are **time-range adaptive** — each target is a `UNION ALL`
+of two branches gated on the selected window:
+`($__unixEpochTo() - $__unixEpochFrom()) <= 3600` reads raw `sensor_readings[_cal]`
+(full resolution, windows ≤ 1 h) and `> 3600` reads the 1-minute continuous aggregate
+`sensor_readings_1min[_cal]` (migration `005`; fast for long windows). Postgres prunes
+whichever branch is constant-false, so exactly one runs. The `3600` (seconds) **is** the
+crossover — change it in every panel to retune. Zooming/painting a sub-hour range makes
+every panel switch to raw automatically.
+
+**When editing these panels in the browser:** keep the target in raw-SQL mode and preserve
+both `UNION ALL` branches. The visual query builder (or "simplifying" the SQL) will flatten
+the adaptive behavior and long windows go slow again. The Calibrated|Raw switch on Koti is
+the `series` dashboard variable (`cal`/`raw`), applied via `CASE` in the same SQL.
+
 ## Files
 
 | Path | What |

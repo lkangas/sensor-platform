@@ -53,6 +53,11 @@ docker compose ps
   site: new config-<site>.yml + compose service + ACL entry + passwd user.
 - **Telegraf whitelists fields** (`fieldinclude`) so an unexpected field can
   never ALTER the table; unknown data belongs in `extras` (future sources).
+- **Ingest dedupe** — a Starlark processor at `order = 0` in `telegraf.conf` drops
+  duplicate BLE re-broadcasts before storage: plain tags by `measurementSequenceNumber`,
+  Air-class (DF6/E1) by measurement content. Keyed `site|sensor|stream`; state is in-memory,
+  so a restart admits at most one duplicate per sensor. Cut ingest ~55–60 % (a Ruuvi Air
+  broadcasts ~5 Hz but only changes every ~2.5 s). Raw beacons are otherwise preserved.
 - **Ruuvi Air (data format E1)** rides the existing `ruuvi` pipeline unchanged —
   same gateway, same `<site>/ruuvi/<mac>` topics, same per-site RuuviBridge (it
   decodes E1). Air rows differ only by which columns are populated (`co2`, `pm2_5`,

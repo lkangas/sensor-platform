@@ -39,9 +39,9 @@ ansible/    optional fleet management (3+ nodes)
 | M0 — Verified data source (Phase 0 test script) | ✅ done — 6 tags read live (DF5) |
 | M1 — Foundation (VPS hardened, Docker, DNS) | ✅ done — vps.example.com → Hetzner hel1 |
 | M2 — Server up (stack healthy, HTTPS) | ✅ done — https://vps.example.com + MQTTS 8883 |
-| M3 — Schema live (hypertable + caggs) | ✅ done — sensor_readings + hourly rollup |
+| M3 — Schema live (hypertable + caggs) | ✅ done — sensor_readings + hourly & 1-min rollups + query-time calibration |
 | M4 — Glue proven (publish → decode → DB) | ✅ done — 8 tags, 37 rows on first run |
-| M6 — Dashboards & alerts as code | ✅ done — overview dashboard; low-battery alert fire-tested |
+| M6 — Dashboards & alerts as code | ✅ done — public Koti/Vaunu dashboards (calibrated, time-adaptive); low-battery alert fire-tested |
 | M5 — First edge nodes | 📋 planned & templated — [docs/EDGE-SETUP.md](docs/EDGE-SETUP.md); awaiting hardware |
 | M7, M8 | not started |
 
