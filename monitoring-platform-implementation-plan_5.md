@@ -802,7 +802,7 @@ pipeline change.
   raw view is 45,983 rows / 37 ms for the heaviest panel (comfortably fast — that's why the
   crossover is 3 h, matching the Grafana preset). Calibrated|Raw toggle preserved. Crossover
   is the constant `10800` (seconds) in each panel — one-number tunable (was 1 h/3600 initially).
-  Applied to **all four dashboards** 2026-07-06: Koti, Vaunu, and the VPS-only `other` (neighbor)
+  Applied to **all four dashboards** 2026-07-06: Koti, Vaunu, and the VPS-only `other` board
   are adaptive; the former VPS-only `test` host-metrics board was promoted to a committed **Perf**
   dashboard (`3cb48b9`) but kept **raw** (host metrics are low-volume — ~26k rows/7 d — so the
   aggregate adds nothing, and would need host columns the cagg lacks). (3) DELETE the
