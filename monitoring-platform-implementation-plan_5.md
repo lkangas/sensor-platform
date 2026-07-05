@@ -801,8 +801,11 @@ pipeline change.
   fast). Measured: 24 h temperature **532 ms/787k rows → 9.9 ms/13.3k rows** (~54×); a 3 h
   raw view is 45,983 rows / 37 ms for the heaviest panel (comfortably fast — that's why the
   crossover is 3 h, matching the Grafana preset). Calibrated|Raw toggle preserved. Crossover
-  is the constant `10800` (seconds) in each panel — one-number tunable (was 1 h/3600 initially). NOT done: the VPS-only `other`/`test`
-  dashboards still query raw (git-ignored; same transform applies if wanted). (3) DELETE the
+  is the constant `10800` (seconds) in each panel — one-number tunable (was 1 h/3600 initially).
+  Applied to **all four dashboards** 2026-07-06: Koti, Vaunu, and the VPS-only `other` (neighbor)
+  are adaptive; the former VPS-only `test` host-metrics board was promoted to a committed **Perf**
+  dashboard (`3cb48b9`) but kept **raw** (host metrics are low-volume — ~26k rows/7 d — so the
+  aggregate adds nothing, and would need host columns the cagg lacks). (3) DELETE the
   stale `site='test'` rows — **DONE 2026-07-06**: 1,160,651 rows deleted (retired
   test/setup node; `home` held the identical calibration-window coverage — 1299 min/tag either way —
   so nothing unique lost; also fixed historical double-plotting, since panels filter by tag not
