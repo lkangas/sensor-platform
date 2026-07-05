@@ -700,10 +700,19 @@ pipeline change.
   snapshot the Docker volumes if your provider supports it.
 - **Disk watch.** Compression + retention keep growth bounded, but alert on VPS disk
   usage anyway.
-- **Ingest dedupe — receiving side (design APPROVED 2026-07-05, NOT yet implemented;
-  awaiting explicit go).** Goal: the raw tier keeps *every real measurement* ("as dense
-  as possible") but stores *no duplicates*. Duplicates are re-broadcasts: devices repeat
-  each measurement over several BLE adverts, and every advert currently becomes a DB row.
+- **Ingest dedupe — receiving side (IMPLEMENTED + LIVE 2026-07-05, commits `c93793f` +
+  `4d28fca`).** Goal: the raw tier keeps *every real measurement* ("as dense as possible")
+  but stores *no duplicates*. Duplicates are re-broadcasts: devices repeat each measurement
+  over several BLE adverts, and every advert previously became a DB row.
+  **Result (measured over a 10-min post-deploy window):** Air-class DF6 3.38→**0.85**/s,
+  E1 2.97→**0.71**/s (−75 %); tags unchanged in the fleet-mean but the *summer* site's tags
+  fell from **1.77 stored copies per measurement to exactly 1.00** (that site's publisher
+  re-emits each advert ~1.8×, an unplanned find); host untouched; identical-consecutive-kept
+  Air pairs **0** (was 1323/1606 pre-fix). Projected whole-table ingest **~349k rows/day**
+  (was ~700k). **One live-debug lesson baked into the config:** state must be keyed
+  `site|sensor|stream`, NOT `site|sensor` — an Air's DF6 and E1 adverts interleave on the
+  same MAC, so a shared slot let them overwrite each other and nothing deduped; keying the
+  content branch by the field-NAME set separates the two formats. Original design below.
   Measured 2026-07-05: a Ruuvi Air ≈ 18.9k rows/h (~5.2/s across its two advert formats)
   while its measurement content changes only every ~2.5 s; tags ≈ zero duplicates (each
   received row is a new measurement; their ~3.2 s spacing is indoor packet loss, adverts
