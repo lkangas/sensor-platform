@@ -65,7 +65,7 @@ services:
     depends_on:
       - mosquitto
 
-  # Decoder for site 'summer' (M5 — summer-place edge node / wilk-raspi).
+  # Decoder for site 'summer' (Vaunu / summer-place edge node).
   ruuvibridge-summer:
     image: ghcr.io/scrin/ruuvibridge:latest
     restart: unless-stopped

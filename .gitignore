@@ -36,7 +36,7 @@ docs/local/
 # and the loader are committed. Same model as .env.
 server/db/sensor-meta/tags.csv
 
-# The "other" dashboard (owner=other) — provisioned on the VPS only, never committed,
+# The "other" dashboard — provisioned on the VPS only, never committed,
 # whichever folder (Public/Private) it currently sits in. (Temporarily in Public so it's
 # visible without login; will move back to Private on request.)
 server/grafana/provisioning/dashboards/*/other-sensors.json
