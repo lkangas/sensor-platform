@@ -700,6 +700,67 @@ pipeline change.
   snapshot the Docker volumes if your provider supports it.
 - **Disk watch.** Compression + retention keep growth bounded, but alert on VPS disk
   usage anyway.
+- **Ingest dedupe — receiving side (design APPROVED 2026-07-05, NOT yet implemented;
+  awaiting explicit go).** Goal: the raw tier keeps *every real measurement* ("as dense
+  as possible") but stores *no duplicates*. Duplicates are re-broadcasts: devices repeat
+  each measurement over several BLE adverts, and every advert currently becomes a DB row.
+  Measured 2026-07-05: a Ruuvi Air ≈ 18.9k rows/h (~5.2/s across its two advert formats)
+  while its measurement content changes only every ~2.5 s; tags ≈ zero duplicates (each
+  received row is a new measurement; their ~3.2 s spacing is indoor packet loss, adverts
+  are 1.285 s). A time-based throttle is the wrong tool (set above the measurement
+  interval it drops real data; below it duplicates leak) — dedupe on measurement identity
+  instead, per stream type:
+    * **Tags (DF5):** dedupe key = the 16-bit `measurementSequenceNumber` — exact; keeps
+      every measurement, preserves seq-gap visibility (reboot/loss diagnosis).
+    * **Air legacy (DF6, has `co2`):** its counter is 8-bit, ticks ~0.8 s and wraps every
+      ~3.5 min (2–3 adverts per tick — an advert-group id, not a measurement id), so key =
+      the *measurement content* (all fields except radio-volatile `rssi`/`txPower` and the
+      counter itself). Keeps ~1 row per real content change (~2.5 s).
+    * **Air extended (E1, via air-e1-decoder; no `rssi` field):** key = content, same rule.
+  **Where:** one Starlark processor in `server/telegraf/telegraf.conf` at `order = 0`
+  (before the unit-conversion starlark) — the single choke point all sites and both
+  decoders flow through; config-only, no decoder code changes, neighbor devices and
+  future sites inherit it. Sketch (field names as they exist pre-rename at order 0):
+
+  ```toml
+  [[processors.starlark]]
+    order = 0
+    source = '''
+  state = {}
+  def apply(metric):
+      if metric.tags.get("source") != "ruuvi":
+          return metric                    # host metrics etc. pass untouched
+      key = metric.tags.get("site", "") + "|" + metric.tags.get("sensor_id", "")
+      seq = metric.fields.get("measurementSequenceNumber")
+      if seq != None and metric.fields.get("co2") == None:
+          sig = "s:" + str(seq)            # tag: true measurement counter
+      else:                                # Air DF6/E1: content identity
+          parts = []
+          for k in sorted(metric.fields.keys()):
+              if k not in ("rssi", "txPower", "measurementSequenceNumber"):
+                  parts.append(k + "=" + str(metric.fields[k]))
+          sig = "c:" + ";".join(parts)
+      if state.get(key) == sig:
+          return None                      # duplicate advert -> drop before storage
+      state[key] = sig
+      return metric
+  '''
+  ```
+
+  Properties & choices a reviewer should check: (1) state key includes `site`, so the
+  same MAC heard by two sites is never cross-suppressed (keying on MAC alone would also
+  dedupe cross-gateway overlap — deliberate non-goal for now); (2) in-memory state resets
+  on Telegraf restart → at most one duplicate row per sensor per restart; (3) rssi/txPower
+  still stored, sampled at the kept row (per-advert rssi granularity for the Air is
+  sacrificed — tags keep theirs); (4) `mqtt_publisher.minimum_interval` stays `0s` in all
+  RuuviBridge configs (dedupe supersedes throttling; the "gap-free seq" rationale in that
+  comment survives because seq-dedupe drops only same-seq repeats). **Expected effect:**
+  Air ~18.9k → ~2.9k rows/h (one DF6 + one E1 row per ~2.5 s content change), neighbor Air
+  similar, tags unchanged, host streams unchanged; total ingest roughly −55–60 %.
+  **Deploy:** commit telegraf.conf → VPS pull → `docker compose restart telegraf` (QoS-0
+  messages during the ~seconds restart are lost — a few rows). **Verify:** re-run the
+  per-path Air rate query (expect ~0.4/s per path), spot-check a tag's seq continuity,
+  confirm host rows unaffected. **Rollback:** delete the processor block, restart telegraf.
 - **Data lifecycle & resolution tiers (policy to confirm).** Raw beacons arrive at
   ~0.8 Hz/tag, so full-resolution storage grows quickly. Two independent levers:
   **compression is lossless** — it shrinks storage ~10–15× while keeping *every* beacon, so
@@ -712,13 +773,21 @@ pipeline change.
   exist, so this is mainly "compress sooner?" and "add a 1-min tier and drop raw after N
   days?". Quick win: drop redundant duplicate-gateway rows (e.g. a temporary second
   collector publishing the same tags under a different site).
-  **Sizing snapshot (2026-07-04):** ~180 MB/day uncompressed (both gateways; ~90 MB/day
-  one), ~680k rows/day, nothing compressed yet (chunks < 7 d), VPS disk ~40 GB.
-  **Recommended defaults — DEFERRED, user decides later:** (1) compress raw after ~2 days
-  (lossless, keeps full resolution); (2) add a 1-minute continuous aggregate and drop raw
-  after ~1 year — or just keep everything compressed at full resolution and add the
-  downsample tier only if disk tightens. Lean: do (1) now, defer (2). The hard requirement
-  is full resolution for **at least 1–2 days**.
+  **Sizing snapshot (2026-07-05):** table 661 MB after 4 days (~160 MB/day, ~700k
+  rows/day of which the Air alone is ~450k — see the ingest-dedupe bullet above), nothing
+  compressed yet (single 7-day chunk), VPS disk 28 G free. Slow 24 h dashboards measured:
+  the Koti temperature panel ships **843,600 raw rows** per refresh (DB scan itself
+  ~0.6 s — the lag is transfer + render; no panel uses the hourly rollup).
+  **Recommendations delivered 2026-07-05 — awaiting the user's go, item by item:**
+  (1) ingest dedupe (now its own bullet above — supersedes the earlier "throttle the Air"
+  idea); (2) a **1-minute continuous aggregate** (+`_cal` views mirroring migration 004)
+  with panels bucketing over it via `time_bucket($__interval)`, plus a raw "Live" row
+  (last 30–60 min, fast refresh) on the Koti board — this is the actual fix for slow
+  24 h+ windows; (3) DELETE the ~1.16 M stale `site='test'` rows (pre-cutover duplicates
+  of the same tags); (4) compress after **2 days** instead of 7 with **1-day chunks**
+  (lossless 10–15×; new chunks only). Keep raw retention at 365 d — post-fix ingest
+  ≈ 250k rows/day ≈ 55 MB/day makes it comfortable. The hard requirement stands: full
+  resolution for **at least 1–2 days**.
 - **Server updates.** `docker compose pull && docker compose up -d` on a cadence. Read
   TimescaleDB release notes before any **major** Postgres version jump (that's a
   migration, not a simple pull).
