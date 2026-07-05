@@ -765,6 +765,14 @@ Each milestone below is committed to Git as soon as its checkpoint passes (princ
       one run.
 - [ ] **M8 — Fleet & extras:** second site added; (Ansible + Tailscale as sites grow);
       weather source; backups running and test-restored.
+- [ ] **M9 — User manual:** a comprehensive but compact, easy-to-understand operator's
+      manual for the everyday/occasional tasks the platform accumulates — e.g. renaming a
+      tag (edit local `tags.csv` → load on the VPS), adding/moving a tag or site,
+      re-running a calibration and how offsets apply, using the Calibrated|Raw toggle,
+      where names/data/secrets live (and what is git-ignored vs committed), service
+      health checks, and backup/restore of the private bits. One doc, task-oriented
+      ("how do I…"), each recipe a few steps with the exact commands. NOT started —
+      write only when explicitly asked.
 
 ---
 
