@@ -802,10 +802,21 @@ pipeline change.
   view still every beacon. Calibrated|Raw toggle preserved. Crossover is the constant
   `3600` (seconds) in each panel — one-number tunable. NOT done: the VPS-only `other`/`test`
   dashboards still query raw (git-ignored; same transform applies if wanted). (3) DELETE the
-  ~1.16 M stale `site='test'` rows (pre-cutover duplicates) — **PENDING**. (4) compress after
-  **2 days** instead of 7 with **1-day chunks** (lossless 10–15×; new chunks only) —
-  **PENDING**. Keep raw retention at 365 d — post-dedupe ingest ≈ 350k rows/day makes it
-  comfortable. The hard requirement stands: full
+  stale `site='test'` rows — **DONE 2026-07-06**: 1,160,651 rows deleted (retired
+  test/setup node; `home` held the identical calibration-window coverage — 1299 min/tag either way —
+  so nothing unique lost; also fixed historical double-plotting, since panels filter by tag not
+  site and those tags had both a home and a test copy). Both continuous aggregates were
+  `refresh_continuous_aggregate`-d over the test range to purge `test` buckets, then vacuumed.
+  ⚠ the vacuum needed `SET max_parallel_maintenance_workers = 0` — the timescaledb container
+  ships the Docker-default **64 MB `/dev/shm`**, which parallel vacuum overflows (`could not
+  resize shared memory segment … No space left on device`, *not* real disk). Fix if it recurs:
+  add `shm_size: 256m` to the timescaledb service (needs a container recreate). (4) compress
+  after 2 days + 1-day chunks — **PENDING, but now LOW VALUE**: long views are served by the
+  1-min aggregate, so compression timing no longer affects any dashboard (raw is only read for
+  ≤1 h windows, never old enough to be compressed). It's pure disk housekeeping now, and disk
+  is 28 G free (~2–3 GB/yr), so no urgency — fine to leave compression at 7 d. Keep raw
+  retention at 365 d — post-dedupe ingest ≈ 350k rows/day makes it comfortable. The hard
+  requirement stands: full
   resolution for **at least 1–2 days**.
 - **Server updates.** `docker compose pull && docker compose up -d` on a cadence. Read
   TimescaleDB release notes before any **major** Postgres version jump (that's a
