@@ -1,8 +1,10 @@
 # server/ — VPS stack (M2/M3)
 
-Six services on one compose network: Caddy (HTTPS) → Grafana → TimescaleDB ←
-Telegraf ← Mosquitto ← RuuviBridge (one per site). Only Caddy (80/443) and
-Mosquitto's TLS listener (8883) are exposed; everything else is internal.
+Compose stack on one network: Caddy (HTTPS) → Grafana → TimescaleDB ← Telegraf ←
+Mosquitto ← RuuviBridge (one per site), plus two feeder services that also publish to
+`decoded/#`: `air-e1-decoder` (Ruuvi Air E1 fields) and `fmi-weather` (FMI open weather
+observations, `source='fmi'`). Only Caddy (80/443) and Mosquitto's TLS listener (8883)
+are exposed; everything else is internal.
 
 ## Deploy (fresh VPS, M1 done)
 

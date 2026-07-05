@@ -672,23 +672,25 @@ no inbound access.)
 
 ---
 
-## 10. Phase 8 — Weather data (optional, later)
+## 10. Phase 8 — Weather data — FMI temperature IMPLEMENTED 2026-07-06
 
-Two clean options, both landing in the same `sensor_readings` table with
-`source='weather'`:
+Lands in `sensor_readings` with `source='fmi'`, so it rides the 1-min aggregate, adaptive
+views, compression and retention with no schema/pipeline change — the design paying off
+exactly as intended (adding a source is "give it a `source` name and point it at the
+ingestion contract").
 
-- **FMI open data** (Finnish Meteorological Institute) — free open weather observations
-  via their WFS stored-query API. A small scheduled fetcher (a cron'd container, a
-  systemd timer, or Telegraf's HTTP input) pulls the nearest station's observations and
-  inserts them. Pick the closest observation station to each site. Check FMI's current
-  open-data access terms when you build this.
-- **A physical weather station at the summer place** — feed it through the *same* MQTT
-  path and topic convention as any other source (many stations can publish MQTT
-  directly), so it's just another entry in the `decoded/#` namespace.
-
-This phase is a useful worked example of the design paying off: adding a source here is
-just "give it a `source` name and point it at the ingestion contract," not a schema or
-pipeline change.
+- **FMI open data** (Finnish Meteorological Institute) — **DONE** (commit `cb0bda1`).
+  `server/fmi-weather/` poller fetches each configured station's latest observation from the
+  WFS `observations::weather::simple` stored query (no API key; ~10-min cadence) and
+  publishes `decoded/<site>/fmi/<label>`; a Telegraf topic rule ingests it. Stations live in
+  a **git-ignored `stations.json`** (which station backs which site is location-revealing,
+  like `tags.csv`); the committed dashboards match `sensor_id LIKE 'FMI%'` and label from the
+  data, so no station/place is in the repo. Temperature only for now — the config
+  `parameters` list adds humidity/pressure with no schema change. A dashed reference line is
+  on the Koti/Vaunu Temperature panels. `backfill.py` loads history one-off. Attribution:
+  data © FMI, CC BY 4.0.
+- **A physical weather station at the summer place** — still an option, via the same MQTT
+  `decoded/#` path.
 
 ---
 

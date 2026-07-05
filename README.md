@@ -25,7 +25,7 @@ for the full design and rationale.
 
 ```
 server/     runs on the VPS (compose stack: mosquitto, ruuvibridge, telegraf,
-            timescaledb, grafana, caddy)
+            timescaledb, grafana, caddy, air-e1-decoder, fmi-weather)
 edge/       runs on each edge node — Profile A (systemd binary, ARMv6) or
             Profile B (Docker, x86_64 / capable ARM)
 scripts/    bootstrap-edge.sh + test-publisher/ (Phase 0 local verification)
