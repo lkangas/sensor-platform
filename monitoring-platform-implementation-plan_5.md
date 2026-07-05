@@ -788,15 +788,24 @@ pipeline change.
   compressed yet (single 7-day chunk), VPS disk 28 G free. Slow 24 h dashboards measured:
   the Koti temperature panel ships **843,600 raw rows** per refresh (DB scan itself
   ~0.6 s — the lag is transfer + render; no panel uses the hourly rollup).
-  **Recommendations delivered 2026-07-05 — awaiting the user's go, item by item:**
-  (1) ingest dedupe (now its own bullet above — supersedes the earlier "throttle the Air"
-  idea); (2) a **1-minute continuous aggregate** (+`_cal` views mirroring migration 004)
-  with panels bucketing over it via `time_bucket($__interval)`, plus a raw "Live" row
-  (last 30–60 min, fast refresh) on the Koti board — this is the actual fix for slow
-  24 h+ windows; (3) DELETE the ~1.16 M stale `site='test'` rows (pre-cutover duplicates
-  of the same tags); (4) compress after **2 days** instead of 7 with **1-day chunks**
-  (lossless 10–15×; new chunks only). Keep raw retention at 365 d — post-fix ingest
-  ≈ 250k rows/day ≈ 55 MB/day makes it comfortable. The hard requirement stands: full
+  **Recommendations delivered 2026-07-05, status:**
+  (1) ingest dedupe — **DONE + LIVE** (its own bullet above; supersedes the earlier
+  "throttle the Air" idea). (2) 1-minute aggregate + adaptive panels — **DONE + LIVE
+  2026-07-05, migration `005_onemin_aggregate.sql` + commit `8cb84cc`.** Built
+  `sensor_readings_1min` (continuous aggregate, avg + min/max/counter aggregators) and
+  `sensor_readings_1min_cal` (query-time calibration, mirror of 004). Every Koti/Vaunu
+  panel switches source **by time range**: windows **≤ 1 h read raw** (full resolution),
+  **> 1 h read the 1-minute aggregate** — one `UNION ALL` per target gated by
+  `($__unixEpochTo() - $__unixEpochFrom())` so Postgres prunes the unused branch (no
+  separate "Live" section needed; a short range just makes every panel go raw + refresh
+  fast). Measured: 24 h temperature **532 ms/787k rows → 9.9 ms/13.3k rows** (~54×); 1 h
+  view still every beacon. Calibrated|Raw toggle preserved. Crossover is the constant
+  `3600` (seconds) in each panel — one-number tunable. NOT done: the VPS-only `other`/`test`
+  dashboards still query raw (git-ignored; same transform applies if wanted). (3) DELETE the
+  ~1.16 M stale `site='test'` rows (pre-cutover duplicates) — **PENDING**. (4) compress after
+  **2 days** instead of 7 with **1-day chunks** (lossless 10–15×; new chunks only) —
+  **PENDING**. Keep raw retention at 365 d — post-dedupe ingest ≈ 350k rows/day makes it
+  comfortable. The hard requirement stands: full
   resolution for **at least 1–2 days**.
 - **Server updates.** `docker compose pull && docker compose up -d` on a cadence. Read
   TimescaleDB release notes before any **major** Postgres version jump (that's a
