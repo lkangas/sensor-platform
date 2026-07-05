@@ -1,12 +1,6 @@
 sensor_id,name,owner,place,notes
-C3:19:4D:6A:1E:4A,,,,
-CD:4F:D9:E5:11:C5,,,,
-D4:26:B5:E0:2B:CF,,,,
-D9:D6:F4:2E:C8:EE,,,,
-E8:9F:CA:FA:EB:80,,,,
-EA:99:15:CC:02:28,,,,
-EC:B3:F4:E2:23:39,,,,
-EF:AD:66:04:B0:90,,,,
-EF:F2:B3:5C:AA:69,,,,
-F5:A6:AD:BC:CB:54,,,,
-F8:C4:56:9F:AC:61,,,,
+AA:BB:CC:DD:EE:01,Sauna,mine,Koti,example row — replace with your real MAC + name + placement
+AA:BB:CC:DD:EE:02,Makuuhuone,mine,Koti,
+AA:BB:CC:DD:EE:03,Ulko,mine,Vaunu,"owner=mine, place=Koti|Vaunu for your own tags"
+AA:BB:CC:DD:EE:04,,other,,"neighbour's tag: owner=other, name/place left blank"
+AA:BB:CC:DD:EE:05,Air,mine,Koti,Ruuvi Air (CO2/PM) — same table, no special handling

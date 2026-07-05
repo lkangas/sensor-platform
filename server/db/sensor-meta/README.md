@@ -19,7 +19,7 @@ Dashboards `LEFT JOIN sensor_meta` on `sensor_id` and display
 
 1. `cp tags.example.csv tags.csv`  (git ignores `tags.csv`).
 2. Edit `tags.csv` — one row per MAC. Columns:
-   - `sensor_id` — the BLE MAC (already pre-filled with every tag seen so far).
+   - `sensor_id` — the BLE MAC (the template shows placeholder examples; put your real MACs here).
    - `name` — friendly name, e.g. `Sauna`, `Fridge`, `Vaunu Ulko`.
    - `owner` — `mine` or `other` (category axis 1).
    - `place` — for your own tags, `Koti` or `Vaunu` (category axis 2); leave blank for
