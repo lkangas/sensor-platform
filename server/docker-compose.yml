@@ -90,6 +90,20 @@ services:
     depends_on:
       - mosquitto
 
+  # FMI open weather observations -> decoded/<site>/fmi/<label> (source='fmi').
+  fmi-weather:
+    build: ./fmi-weather
+    restart: unless-stopped
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_PORT: "1883"
+      POLL_INTERVAL: "600"        # FMI observations update ~every 10 min
+    volumes:
+      # station identities are location-revealing -> git-ignored (see fmi-weather/README)
+      - ./fmi-weather/stations.json:/config/stations.json:ro
+    depends_on:
+      - mosquitto
+
   telegraf:
     image: telegraf:latest
     restart: unless-stopped

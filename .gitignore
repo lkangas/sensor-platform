@@ -36,6 +36,10 @@ docs/local/
 # and the loader are committed. Same model as .env.
 server/db/sensor-meta/tags.csv
 
+# FMI weather station config — station identities reveal location (see fmi-weather/README).
+# The poller code + stations.example.json are committed; the real config is not.
+server/fmi-weather/stations.json
+
 # The "other" dashboard — provisioned on the VPS only, never committed,
 # whichever folder (Public/Private) it currently sits in. (Temporarily in Public so it's
 # visible without login; will move back to Private on request.)

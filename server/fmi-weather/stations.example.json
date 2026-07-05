@@ -1,0 +1,8 @@
+[
+  {
+    "site": "home",
+    "label": "FMI Example",
+    "fmisid": 100000,
+    "parameters": ["temperature"]
+  }
+]
