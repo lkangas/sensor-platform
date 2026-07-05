@@ -811,10 +811,17 @@ pipeline change.
   ships the Docker-default **64 MB `/dev/shm`**, which parallel vacuum overflows (`could not
   resize shared memory segment … No space left on device`, *not* real disk). Fix if it recurs:
   add `shm_size: 256m` to the timescaledb service (needs a container recreate). (4) compress
-  after 2 days + 1-day chunks — **PENDING, but now LOW VALUE**: long views are served by the
-  1-min aggregate, so compression timing no longer affects any dashboard (raw is only read for
-  ≤1 h windows, never old enough to be compressed). It's pure disk housekeeping now, and disk
-  is 28 G free (~2–3 GB/yr), so no urgency — fine to leave compression at 7 d. Keep raw
+  after 2 days + 1-day chunks — **not needed as a change; compression is a FREE win and the
+  existing 7-day policy will apply it automatically.** Measured 2026-07-06 (compressed the live
+  chunk, timed, decompressed): a ≤1 h zoom into >7-day-old (compressed) data runs in **~6–8 ms —
+  same as uncompressed** (warm). TimescaleDB stores compressed batches time-ordered with min/max
+  metadata, so a 1 h slice excludes ~1414/1445 batches and decompresses only the ~31 overlapping
+  ones (ColumnarScan + vectorised filter); the 26× less I/O (676 MB→26 MB) offsets the decompress
+  CPU. Long views (1-min aggregate) are a separate table, unaffected. So compressing sooner buys
+  disk but no speed penalty; disk is ample so there's no urgency, but no reason to avoid it either
+  — the 7-day default compresses old chunks transparently. (The one caveat is inserting into an
+  already-compressed chunk, e.g. very-late summer data — supported since TS 2.11, just recompression
+  overhead; 1-day chunks would keep the active chunk uncompressed if that ever matters.) Keep raw
   retention at 365 d — post-dedupe ingest ≈ 350k rows/day makes it comfortable. The hard
   requirement stands: full
   resolution for **at least 1–2 days**.
