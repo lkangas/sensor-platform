@@ -5,6 +5,9 @@ services:
   timescaledb:
     image: timescale/timescaledb:latest-pg16
     restart: unless-stopped
+    # Postgres puts parallel-worker shared memory in /dev/shm; Docker's 64 MB default
+    # overflows on parallel VACUUM / large sorts ("could not resize shared memory segment").
+    shm_size: 256mb
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: sensors
