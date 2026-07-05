@@ -731,8 +731,11 @@ pipeline change.
   spot (e.g. bundled together, insulated) for a period, then over that window compute each
   sensor's mean offset from the group mean and store it as a per-sensor correction term
   (e.g. temperature/humidity offset held with the sensor's metadata) applied at query
-  time. Re-run whenever a sensor is added or replaced. Deferred until there's a run to
-  derive it from.
+  time. Re-run whenever a sensor is added or replaced. **Implemented:** migration
+  `server/db/migrations/004_calibration.sql` (a `sensor_calibration` history table +
+  `sensor_readings_cal` / `sensor_readings_hourly_cal` query-time views) and
+  `scripts/calibrate-offsets.sh` (drift-robust per-minute estimator over a co-location
+  window, with an accept-test and periodic-recalibration support).
 - **Flaky summer-place internet.** MQTT tolerates high latency and reconnects on its own,
   so brief outages just cause gaps. But most gateways/publishers forward in real time and
   do **not** buffer across long outages — if gap-free history from a site matters, add a
