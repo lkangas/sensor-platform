@@ -719,7 +719,7 @@ pipeline change.
     * **Air extended (E1, via air-e1-decoder; no `rssi` field):** key = content, same rule.
   **Where:** one Starlark processor in `server/telegraf/telegraf.conf` at `order = 0`
   (before the unit-conversion starlark) — the single choke point all sites and both
-  decoders flow through; config-only, no decoder code changes, neighbor devices and
+  decoders flow through; config-only, no decoder code changes, every device in range and
   future sites inherit it. Sketch (field names as they exist pre-rename at order 0):
 
   ```toml
@@ -755,8 +755,9 @@ pipeline change.
   sacrificed — tags keep theirs); (4) `mqtt_publisher.minimum_interval` stays `0s` in all
   RuuviBridge configs (dedupe supersedes throttling; the "gap-free seq" rationale in that
   comment survives because seq-dedupe drops only same-seq repeats). **Expected effect:**
-  Air ~18.9k → ~2.9k rows/h (one DF6 + one E1 row per ~2.5 s content change), neighbor Air
-  similar, tags unchanged, host streams unchanged; total ingest roughly −55–60 %.
+  Air ~18.9k → ~2.9k rows/h (one DF6 + one E1 row per ~2.5 s content change), any other
+  Air in range similar, tags unchanged, host streams unchanged; total ingest roughly
+  −55–60 %.
   **Deploy:** commit telegraf.conf → VPS pull → `docker compose restart telegraf` (QoS-0
   messages during the ~seconds restart are lost — a few rows). **Verify:** re-run the
   per-path Air rate query (expect ~0.4/s per path), spot-check a tag's seq continuity,
