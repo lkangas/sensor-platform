@@ -10,7 +10,17 @@
   "editable": true,
   "refresh": "1m",
   "time": { "from": "now-24h", "to": "now" },
-  "templating": { "list": [] },
+  "templating": { "list": [
+    { "name": "series", "label": "Values", "type": "custom",
+      "description": "Cross-calibration-corrected values (sensor_readings_cal), or raw as broadcast.",
+      "query": "Calibrated : _cal, Raw : ",
+      "options": [
+        { "selected": true,  "text": "Calibrated", "value": "_cal" },
+        { "selected": false, "text": "Raw",        "value": "" }
+      ],
+      "current": { "selected": true, "text": "Calibrated", "value": "_cal" },
+      "includeAll": false, "multi": false }
+  ] },
   "links": [
     { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Koti", "tooltip": "Koti (home) sensors", "type": "link", "url": "/d/public-sensors" },
     { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Vaunu", "tooltip": "Vaunu (caravan) sensors", "type": "link", "url": "/d/vaunu-sensors" },
@@ -27,7 +37,7 @@
       "fieldConfig": { "defaults": { "unit": "celsius", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
       "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.temperature_cal AS temperature\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Koti'\nORDER BY 1" }
+        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.temperature${series} AS temperature\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Koti'\nORDER BY 1" }
       ]
     },
     {
@@ -39,7 +49,7 @@
       "fieldConfig": { "defaults": { "unit": "humidity", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
       "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.humidity_cal AS humidity\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Koti'\nORDER BY 1" }
+        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.humidity${series} AS humidity\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Koti'\nORDER BY 1" }
       ]
     },
     {
@@ -102,7 +112,7 @@
       "fieldConfig": { "defaults": { "unit": "pressurehpa", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
       "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.pressure_cal AS pressure\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Koti' AND sr.pressure IS NOT NULL\nORDER BY 1" }
+        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.pressure${series} AS pressure\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Koti' AND sr.pressure IS NOT NULL\nORDER BY 1" }
       ]
     },
     {
