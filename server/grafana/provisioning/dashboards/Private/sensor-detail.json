@@ -60,6 +60,20 @@
         },
         "refresh": 2,
         "sort": 1
+      },
+      {
+        "name": "series",
+        "label": "Series",
+        "type": "custom",
+        "description": "Raw sensor values, or cross-calibration-corrected (sensor_readings_cal).",
+        "query": "Calibrated : _cal, Raw : ",
+        "options": [
+          { "selected": true, "text": "Calibrated", "value": "_cal" },
+          { "selected": false, "text": "Raw", "value": "" }
+        ],
+        "current": { "selected": true, "text": "Calibrated", "value": "_cal" },
+        "includeAll": false,
+        "multi": false
       }
     ]
   },
@@ -241,7 +255,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT \"time\", COALESCE(sensor_name, right(replace(sensor_id, ':', ''), 4)) AS sensor, temperature\nFROM sensor_readings\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
+          "rawSql": "SELECT \"time\", COALESCE(sensor_name, right(replace(sensor_id, ':', ''), 4)) AS sensor, temperature${series} AS temperature\nFROM sensor_readings_cal\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
         }
       ]
     },
@@ -422,7 +436,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT \"time\", COALESCE(sensor_name, right(replace(sensor_id, ':', ''), 4)) AS sensor, humidity\nFROM sensor_readings\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
+          "rawSql": "SELECT \"time\", COALESCE(sensor_name, right(replace(sensor_id, ':', ''), 4)) AS sensor, humidity${series} AS humidity\nFROM sensor_readings_cal\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
         }
       ]
     },
@@ -603,7 +617,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT \"time\", COALESCE(sensor_name, right(replace(sensor_id, ':', ''), 4)) AS sensor, pressure\nFROM sensor_readings\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
+          "rawSql": "SELECT \"time\", COALESCE(sensor_name, right(replace(sensor_id, ':', ''), 4)) AS sensor, pressure${series} AS pressure\nFROM sensor_readings_cal\nWHERE $__timeFilter(\"time\")\n  AND site IN (${site:sqlstring})\n  AND sensor_id IN (${sensor:sqlstring})\nORDER BY 1"
         }
       ]
     },
@@ -955,7 +969,7 @@
           },
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT DISTINCT ON (sensor_id)\n  COALESCE(sensor_name, right(replace(sensor_id, ':', ''), 4)) AS \"sensor\",\n  extract(epoch FROM now() - time) AS \"age\",\n  temperature AS \"temperature\",\n  humidity AS \"humidity\",\n  round(pressure::numeric, 1) AS \"pressure\",\n  battery_mv AS \"battery\",\n  rssi AS \"rssi\"\nFROM sensor_readings\nWHERE site IN (${site:sqlstring}) AND sensor_id IN (${sensor:sqlstring})\nORDER BY sensor_id, time DESC"
+          "rawSql": "SELECT DISTINCT ON (sensor_id)\n  COALESCE(sensor_name, right(replace(sensor_id, ':', ''), 4)) AS \"sensor\",\n  extract(epoch FROM now() - time) AS \"age\",\n  temperature${series} AS \"temperature\",\n  humidity${series} AS \"humidity\",\n  round(pressure${series}::numeric, 1) AS \"pressure\",\n  battery_mv AS \"battery\",\n  rssi AS \"rssi\"\nFROM sensor_readings_cal\nWHERE site IN (${site:sqlstring}) AND sensor_id IN (${sensor:sqlstring})\nORDER BY sensor_id, time DESC"
         }
       ]
     },
