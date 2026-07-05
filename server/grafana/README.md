@@ -37,11 +37,11 @@ Or just tell Claude "I made a dashboard `<uid>`, commit it" and it runs the pull
 
 The environmental panels are **time-range adaptive** — each target is a `UNION ALL`
 of two branches gated on the selected window:
-`($__unixEpochTo() - $__unixEpochFrom()) <= 3600` reads raw `sensor_readings[_cal]`
-(full resolution, windows ≤ 1 h) and `> 3600` reads the 1-minute continuous aggregate
+`($__unixEpochTo() - $__unixEpochFrom()) <= 10800` reads raw `sensor_readings[_cal]`
+(full resolution, windows ≤ 3 h) and `> 10800` reads the 1-minute continuous aggregate
 `sensor_readings_1min[_cal]` (migration `005`; fast for long windows). Postgres prunes
-whichever branch is constant-false, so exactly one runs. The `3600` (seconds) **is** the
-crossover — change it in every panel to retune. Zooming/painting a sub-hour range makes
+whichever branch is constant-false, so exactly one runs. The `10800` (seconds = 3 h) **is**
+the crossover — change it in every panel to retune. Zooming/painting a ≤ 3 h range makes
 every panel switch to raw automatically.
 
 **When editing these panels in the browser:** keep the target in raw-SQL mode and preserve

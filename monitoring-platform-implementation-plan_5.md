@@ -794,13 +794,14 @@ pipeline change.
   2026-07-05, migration `005_onemin_aggregate.sql` + commit `8cb84cc`.** Built
   `sensor_readings_1min` (continuous aggregate, avg + min/max/counter aggregators) and
   `sensor_readings_1min_cal` (query-time calibration, mirror of 004). Every Koti/Vaunu
-  panel switches source **by time range**: windows **≤ 1 h read raw** (full resolution),
-  **> 1 h read the 1-minute aggregate** — one `UNION ALL` per target gated by
+  panel switches source **by time range**: windows **≤ 3 h read raw** (full resolution),
+  **> 3 h read the 1-minute aggregate** — one `UNION ALL` per target gated by
   `($__unixEpochTo() - $__unixEpochFrom())` so Postgres prunes the unused branch (no
-  separate "Live" section needed; a short range just makes every panel go raw + refresh
-  fast). Measured: 24 h temperature **532 ms/787k rows → 9.9 ms/13.3k rows** (~54×); 1 h
-  view still every beacon. Calibrated|Raw toggle preserved. Crossover is the constant
-  `3600` (seconds) in each panel — one-number tunable. NOT done: the VPS-only `other`/`test`
+  separate "Live" section needed; a ≤3 h range just makes every panel go raw + refresh
+  fast). Measured: 24 h temperature **532 ms/787k rows → 9.9 ms/13.3k rows** (~54×); a 3 h
+  raw view is 45,983 rows / 37 ms for the heaviest panel (comfortably fast — that's why the
+  crossover is 3 h, matching the Grafana preset). Calibrated|Raw toggle preserved. Crossover
+  is the constant `10800` (seconds) in each panel — one-number tunable (was 1 h/3600 initially). NOT done: the VPS-only `other`/`test`
   dashboards still query raw (git-ignored; same transform applies if wanted). (3) DELETE the
   stale `site='test'` rows — **DONE 2026-07-06**: 1,160,651 rows deleted (retired
   test/setup node; `home` held the identical calibration-window coverage — 1299 min/tag either way —
