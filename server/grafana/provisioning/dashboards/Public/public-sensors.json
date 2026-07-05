@@ -25,7 +25,7 @@
     { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Koti", "tooltip": "Koti (home) sensors", "type": "link", "url": "/d/public-sensors" },
     { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Vaunu", "tooltip": "Vaunu (caravan) sensors", "type": "link", "url": "/d/vaunu-sensors" },
     { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Other", "tooltip": "Other sensors", "type": "link", "url": "/d/other-sensors" },
-    { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Test", "tooltip": "Scratch / temporary visualizations", "type": "link", "url": "/d/test-dashboard" }
+    { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Perf", "tooltip": "Host performance metrics", "type": "link", "url": "/d/perf" }
   ],
   "panels": [
     {

@@ -41,10 +41,6 @@ server/db/sensor-meta/tags.csv
 # visible without login; will move back to Private on request.)
 server/grafana/provisioning/dashboards/*/other-sensors.json
 
-# Scratch "Test" dashboard — temporary/experimental visualizations, provisioned on the
-# VPS only, not committed.
-server/grafana/provisioning/dashboards/*/test-dashboard.json
-
 # Editor / OS
 .vscode/
 .idea/
