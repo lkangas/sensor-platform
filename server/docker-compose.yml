@@ -97,7 +97,7 @@ services:
     environment:
       MQTT_HOST: mosquitto
       MQTT_PORT: "1883"
-      POLL_INTERVAL: "600"        # FMI observations update ~every 10 min
+      POLL_INTERVAL: "60"         # detect new FMI obs within ~1 min; publishes only on change
     volumes:
       # station identities are location-revealing -> git-ignored (see fmi-weather/README)
       - ./fmi-weather/stations.json:/config/stations.json:ro

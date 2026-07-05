@@ -24,7 +24,10 @@ import paho.mqtt.client as mqtt
 
 BROKER = os.environ.get("MQTT_HOST", "mosquitto")
 PORT = int(os.environ.get("MQTT_PORT", "1883"))
-POLL = int(os.environ.get("POLL_INTERVAL", "600"))          # seconds (FMI obs are ~10 min)
+# Poll fast, publish only on a NEW observation: FMI observes on a 10-min grid and
+# publishes each obs a few minutes after the mark; a 60 s poll with change detection
+# keeps end-to-end staleness at (FMI publication latency + <=1 poll).
+POLL = int(os.environ.get("POLL_INTERVAL", "60"))
 CONF = os.environ.get("STATIONS_FILE", "/config/stations.json")
 WFS = "https://opendata.fmi.fi/wfs"
 BS = "{http://xml.fmi.fi/schema/wfs/2.0}"                    # BsWfs 'simple' feature namespace
@@ -71,17 +74,28 @@ def main():
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="fmi-weather")
     client.connect(BROKER, PORT, keepalive=60)
     client.loop_start()
-    print(f"fmi-weather up: {len(stations)} station(s), every {POLL}s", flush=True)
+    print(f"fmi-weather up: {len(stations)} station(s), poll every {POLL}s, "
+          "publish on new observation only", flush=True)
+    last = {}  # label -> newest observation time already published
     while True:
         for s in stations:
             try:
                 latest = fetch_latest(s["fmisid"], s.get("parameters", ["temperature"]))
-                payload = {COL[k]: v for k, (t, v) in latest.items() if k in COL}
+                if not latest:
+                    continue
+                # newest observation instant this station has; publish the values
+                # belonging to it, stamped with the TRUE observation time ("time" is
+                # consumed as the metric timestamp by Telegraf, not stored as a column)
+                t_new = max(t for (t, _) in latest.values())
+                if t_new <= last.get(s["label"], ""):
+                    continue                      # nothing new since last publish
+                payload = {COL[k]: v for k, (t, v) in latest.items()
+                           if k in COL and t == t_new}
                 if payload:
+                    payload["time"] = t_new
                     client.publish(f"decoded/{s['site']}/fmi/{s['label']}", json.dumps(payload))
+                    last[s["label"]] = t_new
                     print(f"decoded/{s['site']}/fmi/{s['label']} {payload}", flush=True)
-                else:
-                    print(f"no fresh data for {s.get('label')}", flush=True)
             except Exception as exc:  # never let one station kill the loop
                 print(f"error {s.get('label')}: {exc}", flush=True)
         time.sleep(POLL)

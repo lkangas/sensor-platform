@@ -4,10 +4,14 @@ Pulls open weather observations from the **Finnish Meteorological Institute** an
 them into the same pipeline as the sensors, so they appear on the dashboards as an
 external reference line.
 
-- `fmi_weather.py` — polls each configured station every ~10 min (FMI's observation
-  cadence) and publishes `{"temperature": …}` to `decoded/<site>/fmi/<label>`. Telegraf
-  maps that to `sensor_readings` with `source='fmi'`, `sensor_id=<label>`. From there it
-  rides the 1-minute aggregate, adaptive views, compression and retention for free.
+- `fmi_weather.py` — polls each configured station every 60 s but publishes **only when a
+  new observation appears** (FMI observes on a 10-min grid and publishes each obs a few
+  minutes after the mark — so end-to-end staleness is FMI's own publication latency plus
+  at most one poll). The payload carries the **true observation time**, which Telegraf's
+  dedicated FMI consumer uses as the row timestamp (`json_time_key`), so points land on
+  the :00/:10/:20 grid rather than at arrival time. Rows get `source='fmi'`,
+  `sensor_id=<label>`, and ride the 1-minute aggregate, adaptive views, compression and
+  retention for free.
 - `backfill.py` — one-off: prints SQL to load N days of history (see below).
 
 No API key is required (`opendata.fmi.fi`). Data © FMI, licensed **CC BY 4.0** — keep the
