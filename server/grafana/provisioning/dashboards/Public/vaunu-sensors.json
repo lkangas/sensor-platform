@@ -1,168 +1,490 @@
 {
-  "annotations": { "list": [] },
+  "annotations": {
+    "list": []
+  },
   "id": null,
   "uid": "vaunu-sensors",
   "title": "Sensors — Vaunu",
-  "tags": ["public"],
+  "tags": [
+    "public"
+  ],
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,
   "editable": true,
   "refresh": "1m",
-  "time": { "from": "now-24h", "to": "now" },
-  "templating": { "list": [] },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "templating": {
+    "list": []
+  },
   "links": [
-    { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Koti", "tooltip": "Koti (home) sensors", "type": "link", "url": "/d/public-sensors" },
-    { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Vaunu", "tooltip": "Vaunu (caravan) sensors", "type": "link", "url": "/d/vaunu-sensors" },
-    { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Other", "tooltip": "Other sensors", "type": "link", "url": "/d/other-sensors" },
-    { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Perf", "tooltip": "Host performance metrics", "type": "link", "url": "/d/perf" }
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Koti",
+      "tooltip": "Koti (home) sensors",
+      "type": "link",
+      "url": "/d/public-sensors"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Vaunu",
+      "tooltip": "Vaunu (caravan) sensors",
+      "type": "link",
+      "url": "/d/vaunu-sensors"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Other",
+      "tooltip": "Other sensors",
+      "type": "link",
+      "url": "/d/other-sensors"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Perf",
+      "tooltip": "Host performance metrics",
+      "type": "link",
+      "url": "/d/perf"
+    }
   ],
   "panels": [
     {
       "id": 1,
       "type": "timeseries",
       "title": "Temperature",
-      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": { "unit": "celsius", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.temperature_cal AS temperature\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.temp_avg_cal AS temperature\nFROM sensor_readings_1min_cal a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1" }
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.temperature_cal AS temperature\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.temp_avg_cal AS temperature\nFROM sensor_readings_1min_cal a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+        }
       ]
     },
     {
       "id": 2,
       "type": "timeseries",
       "title": "Humidity",
-      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": { "unit": "humidity", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "humidity",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.humidity_cal AS humidity\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.hum_avg_cal AS humidity\nFROM sensor_readings_1min_cal a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1" }
-      ]
-    },
-    {
-      "id": 3,
-      "type": "timeseries",
-      "title": "CO₂ (ppm)",
-      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 9 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": { "unit": "ppm", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
-      "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.co2\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.co2 IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.co2_avg\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.co2_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1" }
-      ]
-    },
-    {
-      "id": 4,
-      "type": "timeseries",
-      "title": "Particulate matter (µg/m³)",
-      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 9 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": { "unit": "conμgm3", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
-      "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", 'PM1.0' AS metric, sr.pm1_0\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.pm1_0 IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, 'PM1.0' AS metric, a.pm1_0_avg\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.pm1_0_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1" },
-        { "refId": "B", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", 'PM2.5' AS metric, sr.pm2_5\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.pm2_5 IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, 'PM2.5' AS metric, a.pm2_5_avg\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.pm2_5_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1" },
-        { "refId": "C", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", 'PM4.0' AS metric, sr.pm4_0\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.pm4_0 IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, 'PM4.0' AS metric, a.pm4_0_avg\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.pm4_0_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1" },
-        { "refId": "D", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", 'PM10.0' AS metric, sr.pm10_0\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.pm10_0 IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, 'PM10.0' AS metric, a.pm10_0_avg\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.pm10_0_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1" }
-      ]
-    },
-    {
-      "id": 5,
-      "type": "timeseries",
-      "title": "VOC (Sensirion index)",
-      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 18 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
-      "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.voc\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.voc IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.voc_avg\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.voc_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1" }
-      ]
-    },
-    {
-      "id": 6,
-      "type": "timeseries",
-      "title": "NOx (Sensirion index)",
-      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 18 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
-      "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.nox\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.nox IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.nox_avg\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.nox_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1" }
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.humidity_cal AS humidity\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.hum_avg_cal AS humidity\nFROM sensor_readings_1min_cal a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+        }
       ]
     },
     {
       "id": 7,
       "type": "timeseries",
       "title": "Pressure (hPa)",
-      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 27 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": { "unit": "pressurehpa", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "pressurehpa",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.pressure_cal AS pressure\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.pressure IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.pressure_avg_cal AS pressure\nFROM sensor_readings_1min_cal a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.pressure_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1" }
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.pressure_cal AS pressure\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.pressure IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.pressure_avg_cal AS pressure\nFROM sensor_readings_1min_cal a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.pressure_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+        }
       ]
     },
     {
       "id": 8,
       "type": "timeseries",
       "title": "Measurement index (sequence #)",
-      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 27 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.seq\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.seq IS NOT NULL AND sr.co2 IS NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.seq_max\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.seq_max IS NOT NULL AND a.co2_avg IS NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1" }
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.seq\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.seq IS NOT NULL AND sr.co2 IS NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.seq_max\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.seq_max IS NOT NULL AND a.co2_avg IS NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+        }
       ]
     },
     {
       "id": 9,
       "type": "timeseries",
       "title": "Movement counter",
-      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 36 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.movement_ctr\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.movement_ctr IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.movement_max\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.movement_max IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1" }
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.movement_ctr\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.movement_ctr IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.movement_max\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.movement_max IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+        }
       ]
     },
     {
       "id": 10,
       "type": "timeseries",
       "title": "Acceleration Z (g)",
-      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 36 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": { "unit": "accG", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "accG",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.accel_z\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.accel_z IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.accel_z_avg\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.accel_z_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1" }
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.accel_z\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.accel_z IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.accel_z_avg\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.accel_z_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+        }
       ]
     },
     {
       "id": 11,
       "type": "timeseries",
       "title": "Battery voltage",
-      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 45 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": { "unit": "mvolt", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "mvolt",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.battery_mv\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.battery_mv IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.battery_min\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.battery_min IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1" }
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.battery_mv\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.battery_mv IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.battery_min\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.battery_min IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+        }
       ]
     },
     {
       "id": 12,
       "type": "timeseries",
       "title": "RSSI (dBm)",
-      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 54 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": { "unit": "dBm", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 36
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dBm",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.rssi\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.rssi IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.rssi_avg\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.rssi_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1" }
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.rssi\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.rssi IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.rssi_avg\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.rssi_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+        }
       ]
     }
   ]
