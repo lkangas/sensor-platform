@@ -147,6 +147,15 @@ def event_loop(client):
                             else:
                                 publish(client, item)
         except Exception as exc:
+            # Idle read timeouts are ROUTINE, not failures: the bridge sends no SSE
+            # keepalives (verified 2026-07-06 — one ': hi' at connect, then silence when
+            # nothing happens), so a quiet house times the read out every couple of
+            # minutes. Reconnect immediately and quietly; save backoff + map reload for
+            # real errors.
+            idle = isinstance(exc, TimeoutError) or isinstance(
+                getattr(exc, "reason", None), TimeoutError)
+            if idle:
+                continue
             print(f"event stream dropped ({exc}); retry in {backoff}s", flush=True)
             time.sleep(backoff)
             backoff = min(backoff * 2, 60)
