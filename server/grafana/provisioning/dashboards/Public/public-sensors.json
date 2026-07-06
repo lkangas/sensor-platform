@@ -95,6 +95,18 @@
       "tooltip": "Host performance metrics",
       "type": "link",
       "url": "/d/perf"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Hue",
+      "tooltip": "Everything collected from the Hue bridge (temporary triage board)",
+      "type": "link",
+      "url": "/d/hue"
     }
   ],
   "panels": [
