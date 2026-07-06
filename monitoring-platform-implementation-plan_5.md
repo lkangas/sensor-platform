@@ -918,15 +918,16 @@ Each milestone below is committed to Git as soon as its checkpoint passes (princ
       Tailscale as sites grow); ~~weather source~~ *(FMI, §10)*, ~~Hue source~~ *(§10b)*,
       ~~SSH-exposure monitor~~ *(§10c)* *(all done 2026-07-06)*; backups running and
       test-restored *(the remaining substance of this milestone)*.
-- [ ] **M9 — User manual:** a comprehensive but compact, easy-to-understand operator's
+- [x] **M9 — User manual:** a comprehensive but compact, easy-to-understand operator's
       manual for the everyday/occasional tasks the platform accumulates — e.g. renaming a
       tag (edit local `tags.csv` → load on the VPS), adding/moving a tag or site,
       re-running a calibration and how offsets apply, using the Calibrated|Raw toggle,
       where names/data/secrets live (and what is git-ignored vs committed), service
       health checks, and backup/restore of the private bits. One doc, task-oriented
-      ("how do I…"), each recipe a few steps with the exact commands. *(first draft
-      committed 2026-07-06: `docs/OPERATIONS.md` (generic, public) + git-ignored
-      `docs/local/QUICKREF.md` holding the real values — awaiting operator review)*
+      ("how do I…"), each recipe a few steps with the exact commands. *(DONE 2026-07-06:
+      `docs/OPERATIONS.md` (generic, public) + git-ignored `docs/local/QUICKREF.md`
+      holding the real values; refreshed to the live 6-source platform and
+      operator-reviewed. New recipes go into this manual going forward.)*
 
 ---
 

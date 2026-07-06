@@ -50,7 +50,7 @@ ansible/    optional fleet management (3+ nodes)
 | M6 — Dashboards & alerts as code | ✅ done — five committed boards (Koti/Vaunu calibrated + time-adaptive, Perf, Security, Hue) + a VPS-only "other"; low-battery alert fire-tested |
 | M7 — Repeatable edge (bootstrap) | 🟡 script committed, not yet proven on a blank device |
 | M8 — Fleet & extras | 🟡 partial — second site ✅, FMI weather ✅, Hue ✅, SSH-exposure monitor ✅; backups + fleet tooling pending |
-| M9 — Operator's user manual | 🟡 first draft — [docs/OPERATIONS.md](docs/OPERATIONS.md), awaiting review |
+| M9 — Operator's user manual | ✅ done — [docs/OPERATIONS.md](docs/OPERATIONS.md) (+ git-ignored real-values quickref), operator-reviewed |
 
 ## Getting started (M0)
 
