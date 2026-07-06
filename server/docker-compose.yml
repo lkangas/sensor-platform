@@ -123,6 +123,8 @@ services:
   grafana:
     image: grafana/grafana:latest
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"   # host loopback only — reached by the cloudflared tunnel (app hostname in docs/local)
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD}
       GF_USERS_ALLOW_SIGN_UP: "false"
@@ -143,7 +145,7 @@ services:
     depends_on:
       timescaledb:
         condition: service_healthy
-    # internal only — Caddy fronts it
+    # reachable on 127.0.0.1:3000 for the cloudflared tunnel; not proxied by Caddy anymore
 
   caddy:
     image: caddy:2
