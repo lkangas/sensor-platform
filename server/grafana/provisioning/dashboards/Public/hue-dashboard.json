@@ -1,94 +1,558 @@
 {
-  "annotations": { "list": [] },
+  "annotations": {
+    "list": []
+  },
   "id": null,
   "uid": "hue",
   "title": "Hue (temporary)",
-  "tags": ["public"],
+  "tags": [
+    "public"
+  ],
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,
   "editable": true,
   "refresh": "1m",
-  "time": { "from": "now-6h", "to": "now" },
-  "templating": { "list": [] },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "templating": {
+    "list": []
+  },
   "links": [
-    { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Koti", "tooltip": "Koti (home) sensors", "type": "link", "url": "/d/public-sensors" },
-    { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Vaunu", "tooltip": "Vaunu (caravan) sensors", "type": "link", "url": "/d/vaunu-sensors" },
-    { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Other", "tooltip": "Other sensors", "type": "link", "url": "/d/other-sensors" },
-    { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Perf", "tooltip": "Host performance metrics", "type": "link", "url": "/d/perf" },
-    { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Hue", "tooltip": "Everything collected from the Hue bridge (temporary triage board)", "type": "link", "url": "/d/hue" }
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Koti",
+      "tooltip": "Koti (home) sensors",
+      "type": "link",
+      "url": "/d/public-sensors"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Vaunu",
+      "tooltip": "Vaunu (caravan) sensors",
+      "type": "link",
+      "url": "/d/vaunu-sensors"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Other",
+      "tooltip": "Other sensors",
+      "type": "link",
+      "url": "/d/other-sensors"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Perf",
+      "tooltip": "Host performance metrics",
+      "type": "link",
+      "url": "/d/perf"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Hue",
+      "tooltip": "Everything collected from the Hue bridge (temporary triage board)",
+      "type": "link",
+      "url": "/d/hue"
+    }
   ],
   "panels": [
     {
       "id": 1,
       "type": "timeseries",
       "title": "Temperature (Hue motion sensors)",
-      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": { "unit": "celsius", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "always", "pointSize": 4, "spanNulls": true } }, "overrides": [] },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "always",
+            "pointSize": 4,
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(sr.sensor_name, left(sr.sensor_id, 8)) AS metric, sr.temperature\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'hue' AND sr.temperature IS NOT NULL\nORDER BY 1" }
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(sr.sensor_name, left(sr.sensor_id, 8)) AS metric, sr.temperature\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'hue' AND sr.temperature IS NOT NULL\nORDER BY 1"
+        }
       ]
     },
     {
       "id": 2,
       "type": "timeseries",
       "title": "Illuminance (lux, log scale)",
-      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": { "unit": "lux", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "always", "pointSize": 4, "spanNulls": true, "scaleDistribution": { "type": "log", "log": 10 } } }, "overrides": [] },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "lux",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "always",
+            "pointSize": 4,
+            "spanNulls": true,
+            "scaleDistribution": {
+              "type": "log",
+              "log": 10
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(sr.sensor_name, left(sr.sensor_id, 8)) AS metric, sr.lux\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'hue' AND sr.lux IS NOT NULL\nORDER BY 1" }
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(sr.sensor_name, left(sr.sensor_id, 8)) AS metric, sr.lux\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'hue' AND sr.lux IS NOT NULL\nORDER BY 1"
+        }
       ]
     },
     {
       "id": 3,
       "type": "timeseries",
       "title": "Motion (1 = detected)",
-      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 9 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": { "min": -0.1, "max": 1.1, "custom": { "drawStyle": "line", "lineInterpolation": "stepAfter", "lineWidth": 2, "fillOpacity": 15, "showPoints": "always", "pointSize": 5, "spanNulls": true } }, "overrides": [] },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "min": -0.1,
+          "max": 1.1,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "showPoints": "always",
+            "pointSize": 5,
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(sr.sensor_name, left(sr.sensor_id, 8)) AS metric, sr.motion\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'hue' AND sr.motion IS NOT NULL\nORDER BY 1" }
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(sr.sensor_name, left(sr.sensor_id, 8)) AS metric, sr.motion\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'hue' AND sr.motion IS NOT NULL\nORDER BY 1"
+        }
       ]
     },
     {
       "id": 4,
       "type": "table",
       "title": "Remote button presses (latest 200 in range)",
-      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 9 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": {}, "overrides": [] },
-      "options": { "showHeader": true, "sortBy": [] },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
       "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "table", "rawQuery": true, "rawSql": "SELECT sr.\"time\" AS \"time\", COALESCE(sr.sensor_name, left(sr.sensor_id, 8)) AS remote, sr.event\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'hue' AND sr.event IS NOT NULL\nORDER BY sr.\"time\" DESC LIMIT 200" }
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\" AS \"time\", COALESCE(sr.sensor_name, left(sr.sensor_id, 8)) AS remote, sr.event\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'hue' AND sr.event IS NOT NULL\nORDER BY sr.\"time\" DESC LIMIT 200"
+        }
       ]
     },
     {
       "id": 5,
       "type": "timeseries",
       "title": "Battery (%)",
-      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 18 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 0, "showPoints": "always", "pointSize": 4, "spanNulls": true } }, "overrides": [] },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "always",
+            "pointSize": 4,
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", COALESCE(sr.sensor_name, left(sr.sensor_id, 8)) AS metric, sr.battery_pct\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'hue' AND sr.battery_pct IS NOT NULL\nORDER BY 1" }
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(sr.sensor_name, left(sr.sensor_id, 8)) AS metric, sr.battery_pct\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'hue' AND sr.battery_pct IS NOT NULL\nORDER BY 1"
+        }
       ]
     },
     {
       "id": 6,
       "type": "timeseries",
       "title": "Event volume (rows/min ingested from Hue)",
-      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 18 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": { "defaults": { "custom": { "drawStyle": "bars", "lineWidth": 1, "fillOpacity": 60, "showPoints": "never" } }, "overrides": [] },
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 60,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
-        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT time_bucket('1 minute', sr.\"time\") AS \"time\", 'rows' AS metric, count(*)\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'hue'\nGROUP BY 1\nORDER BY 1" }
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT time_bucket('1 minute', sr.\"time\") AS \"time\", 'rows' AS metric, count(*)\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'hue'\nGROUP BY 1\nORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "state-timeline",
+      "title": "Lights on/off (all lights + plug)",
+      "gridPos": {
+        "h": 14,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 70,
+            "lineWidth": 0
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "off",
+                  "color": "rgba(80,80,80,0.85)",
+                  "index": 0
+                },
+                "1": {
+                  "text": "on",
+                  "color": "#e0b400",
+                  "index": 1
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "rowHeight": 0.85,
+        "mergeValues": true,
+        "showValue": "never",
+        "legend": {
+          "displayMode": "hidden"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(sr.sensor_name, left(sr.sensor_id, 8)) AS metric, sr.on_state\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'hue' AND sr.on_state IS NOT NULL\nORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Brightness (%)",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 41
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(sr.sensor_name, left(sr.sensor_id, 8)) AS metric, sr.brightness\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'hue' AND sr.brightness IS NOT NULL\nORDER BY 1"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Colour temperature (mirek)",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 41
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(sr.sensor_name, left(sr.sensor_id, 8)) AS metric, sr.mirek\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'hue' AND sr.mirek IS NOT NULL\nORDER BY 1"
+        }
       ]
     }
   ]

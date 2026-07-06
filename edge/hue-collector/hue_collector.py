@@ -40,6 +40,7 @@ BRIDGE = os.environ["HUE_BRIDGE"]
 KEY = os.environ.get("HUE_KEY") or open(os.environ["HUE_KEY_FILE"]).read().strip()
 SITE = os.environ.get("SITE", "home")
 SNAPSHOT = int(os.environ.get("SNAPSHOT_INTERVAL", "900"))
+LOG_LIGHTS = os.environ.get("LOG_LIGHTS", "1") == "1"   # on/brightness/mirek of every light
 CTX = ssl._create_unverified_context()   # bridge cert is self-signed
 
 devices = {}    # service-uuid -> {"dev": device-uuid, "name": str}
@@ -100,6 +101,18 @@ def decode(item):
             return None
         ctl = buttons.get(item.get("id")) or item.get("metadata", {}).get("control_id", 0)
         return {"event": f"b{ctl}:{ev}"}
+    if t == "light" and LOG_LIGHTS:
+        # events are PARTIAL (only the changed sub-objects arrive) — emit what's present
+        out = {}
+        if "on" in item:
+            out["on_state"] = 1 if item["on"].get("on") else 0
+        b = item.get("dimming", {}).get("brightness")
+        if b is not None:
+            out["brightness"] = round(float(b), 1)
+        ct = item.get("color_temperature", {})
+        if ct.get("mirek") is not None and ct.get("mirek_valid", True):
+            out["mirek"] = int(ct["mirek"])
+        return out or None
     return None
 
 
@@ -117,9 +130,10 @@ def publish(client, item):
 def snapshot_loop(client):
     """Heartbeat for the continuous metrics: distinguishes 'no change' from 'collector
     dead'. Runs once at startup too, so temp/lux/battery appear immediately on deploy."""
+    rtypes = ["temperature", "light_level", "device_power"] + (["light"] if LOG_LIGHTS else [])
     while True:
         try:
-            for rtype in ("temperature", "light_level", "device_power"):
+            for rtype in rtypes:
                 for item in hue_get(f"/clip/v2/resource/{rtype}").get("data", []):
                     publish(client, item)
         except Exception as exc:
