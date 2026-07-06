@@ -45,7 +45,7 @@ ansible/    optional fleet management (3+ nodes)
 | M6 — Dashboards & alerts as code | ✅ done — four public dashboards (calibrated, time-adaptive); low-battery alert fire-tested |
 | M7 — Repeatable edge (bootstrap) | 🟡 script committed, not yet proven on a blank device |
 | M8 — Fleet & extras | 🟡 partial — second site ✅, FMI weather source ✅; backups + fleet tooling pending |
-| M9 — Operator's user manual | 📋 not started |
+| M9 — Operator's user manual | 🟡 first draft — [docs/OPERATIONS.md](docs/OPERATIONS.md), awaiting review |
 
 ## Getting started (M0)
 

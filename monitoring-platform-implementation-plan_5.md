@@ -887,8 +887,9 @@ Each milestone below is committed to Git as soon as its checkpoint passes (princ
       re-running a calibration and how offsets apply, using the Calibrated|Raw toggle,
       where names/data/secrets live (and what is git-ignored vs committed), service
       health checks, and backup/restore of the private bits. One doc, task-oriented
-      ("how do I…"), each recipe a few steps with the exact commands. NOT started —
-      write only when explicitly asked.
+      ("how do I…"), each recipe a few steps with the exact commands. *(first draft
+      committed 2026-07-06: `docs/OPERATIONS.md` (generic, public) + git-ignored
+      `docs/local/QUICKREF.md` holding the real values — awaiting operator review)*
 
 ---
 
