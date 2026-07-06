@@ -704,9 +704,14 @@ private, like `tags.csv`).
 
 Architecture when built: the bridge is LAN-only, so a small collector (SSE listener, not a
 poller — the bridge is a modest embedded device) runs on the **home edge node** and
-publishes `decoded/<site>/hue/<id>` like every other source; temperature/lux/battery map
-onto existing `sensor_readings` columns (`lux` finally gets used). Same ingestion contract,
-no schema change expected.
+publishes `<site>/hue/<device-uuid>` over the external MQTTS listener (host-metrics
+pattern; the external ACL only allows `<site>/#`). Temperature/lux map onto existing
+columns (`lux` finally gets used); motion/button events and battery-% need three new
+columns (draft migration 007 — the Telegraf JSON parser drops booleans, hence motion as
+0/1). **Collector DRAFTED** (`edge/hue-collector/`, 2026-07-06): event-driven with a
+snapshot heartbeat, one sensor_id per physical device, motion + button events included for
+automation analysis; light-state logging left as a marked extension point. Not deployed —
+pairing and the probe's verify-list (button/motion report field shapes) come first.
 
 ---
 

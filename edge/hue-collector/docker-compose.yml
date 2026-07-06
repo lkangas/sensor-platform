@@ -1,0 +1,9 @@
+# DRAFT — Hue collector as an edge container (runs on the home node; the bridge is
+# LAN-only). Publishes to the platform's external MQTTS listener with the same site
+# credentials the host-metrics publisher uses.
+#   deploy:  docker compose -f edge/hue-collector/docker-compose.yml up -d --build
+services:
+  hue-collector:
+    build: .
+    restart: unless-stopped
+    env_file: .env       # HUE_BRIDGE, HUE_KEY, SITE, MQTT_HOST/PORT/USER/PASS — git-ignored
