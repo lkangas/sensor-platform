@@ -40,8 +40,11 @@ history instantly**, needs no dashboard edits, and never touches the public repo
    unaffected by renames.
 
 **Add a new tag:** same recipe — add a CSV row. Data flows in automatically as soon as a
-gateway hears the MAC; the row just gives it a name (unnamed tags self-label with the
-last 4 MAC chars).
+gateway hears the MAC, and an **unlisted tag auto-appears on the board of the site that
+hears it** (home site → Koti, summer site → Vaunu), labelled with the last 4 MAC chars.
+The CSV row upgrades it: a name, the right board via `place` (regardless of which site
+hears it), or `owner=other` to move a stray to the "other" board instead. All history
+relabels/moves retroactively.
 
 ## 2. Group tags into their own panel (the `category` axis)
 
