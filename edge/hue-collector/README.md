@@ -2,8 +2,10 @@
 
 Logs Philips Hue data into the platform for analysis: **motion events and remote-control
 button presses** (the automation-mining signals), plus **temperature, illuminance (lux)
-and battery** from the motion sensors. Light/plug state is a one-branch extension in
-`decode()` if wanted later.
+and battery** from the motion sensors — and, with `LOG_LIGHTS=1` (the default), the
+**state of every light/plug**: on/off (0/1), brightness %, colour temperature (mirek).
+Set `LOG_LIGHTS=0` in the `.env` to stop light logging (e.g. after a triage period);
+light events are partial, so rows carry only the sub-fields that changed.
 
 Architecture: the bridge is LAN-only, so this runs on the **home edge node** and pushes
 `{site}/hue/{device-uuid}` over the external MQTTS listener (same pattern + credentials
