@@ -13,10 +13,11 @@ rebuild. To make a change permanent, pull it back into the repo:
 1. **Design** in the browser. Edit an existing dashboard, or build a new one
    (New → Dashboard). Save it in the UI.
 2. **Find its uid** — it's in the URL: `https://vps.example.com/d/<uid>/<slug>`.
-3. **Pull it into the repo:**
+3. **Pull it into the repo** — into the `Public/` folder (see *The boards* below;
+   `foldersFromFilesStructure` makes the subdirectory load-bearing):
    ```bash
-   scripts/grafana-pull-dashboard.sh <uid>
-   # writes server/grafana/provisioning/dashboards/<uid>.json
+   scripts/grafana-pull-dashboard.sh <uid> Public/<uid>.json
+   # writes server/grafana/provisioning/dashboards/Public/<uid>.json
    ```
 4. **Commit & push**, then on the VPS `git pull` (the provider hot-reloads within
    ~30 s; no restart needed).
@@ -32,6 +33,21 @@ Or just tell Claude "I made a dashboard `<uid>`, commit it" and it runs the pull
   keeps the concrete `timescaledb` datasource uid (which we pinned), so the file
   works as-is on any rebuild.
 - The pull strips the internal `id` and `version` so files stay portable.
+
+## The boards
+
+All committed under `provisioning/dashboards/Public/` — `Public/` is a Grafana folder
+name (`foldersFromFilesStructure`), and it's the anonymous-visible one; a `Private/` subdir
+would be admin-only:
+
+- **public-sensors** (Koti) / **vaunu-sensors** (Vaunu) — the environmental boards, with
+  the calibrated + time-adaptive panels described below.
+- **perf** — host/node metrics (`source='host'`), raw.
+- **security** — SSH-exposure counters (`source='security'`).
+- **hue-dashboard** — Philips Hue motion / buttons / light state (`source='hue'`; a
+  temporary triage board).
+
+An "other" board is kept VPS-only (git-ignored), not committed.
 
 ## Panel query pattern (Koti / Vaunu)
 
@@ -54,6 +70,6 @@ the `series` dashboard variable (`cal`/`raw`), applied via `CASE` in the same SQ
 | Path | What |
 |------|------|
 | `provisioning/datasources/timescaledb.yml` | the TimescaleDB datasource (uid `timescaledb`) |
-| `provisioning/dashboards/provider.yml` | loads every `*.json` in that dir |
-| `provisioning/dashboards/*.json` | the dashboards |
+| `provisioning/dashboards/provider.yml` | dashboard provider; `foldersFromFilesStructure` maps each subdir to a Grafana folder |
+| `provisioning/dashboards/Public/*.json` | the committed boards (`Public/` = anonymous-visible folder; a `Private/` subdir would be admin-only) |
 | `provisioning/alerting/*.yml` | alert rules |

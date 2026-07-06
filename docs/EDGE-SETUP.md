@@ -73,17 +73,22 @@ a big board — even a Pi Zero W can do it; see §8.)
 
 ---
 
-## 3. Two deployment profiles
+## 3. Deployment profiles
 
-Picked automatically by hardware; everything downstream is identical.
+Picked by hardware (A vs B) or node type (C); everything downstream is identical.
 
 - **Profile B — Docker (default).** x86_64 and ARMv8/ARMv7 (Pi 3-series or better).
   Runs `ghcr.io/scrin/ruuvi-go-gateway` via `edge/docker-compose.yml`.
 - **Profile A — native binary + systemd.** ARMv6 only (original Pi Zero/1), where
   Docker images often have no arm/v6 variant. Uses `edge/systemd/ruuvi-gateway.service`
   and a prebuilt binary in `edge/bin/`.
+- **Profile C — BlueZ-cooperative publisher.** For a node whose Bluetooth adapter is
+  **shared** with a desktop or other software, where the raw-HCI gateway of A/B silently
+  wedges (see "Gateway reliability" below). `edge/ble-publisher/` scans via BlueZ instead
+  of seizing the HCI socket, and **replaces** the Profile B gateway on that node. Setup:
+  `edge/ble-publisher/README.md`.
 
-For the hardware recommended above you will use **Profile B**.
+For the dedicated boards recommended above you will use **Profile B**.
 
 ---
 
@@ -319,7 +324,28 @@ because nothing crashes.
   ruuvi-go-gateway` (the watchdog catches it within ~5 min otherwise).
 - **Desktop nodes** — BlueZ driving a keyboard/mouse on the same radio as the raw-HCI
   scan — are the most exposed; a dedicated USB BT dongle for the gateway removes the
-  contention.
+  contention, or use **Profile C** (`edge/ble-publisher`, §3), which scans through BlueZ
+  and sidesteps it entirely.
+
+---
+
+## Additional edge publishers (optional)
+
+The BLE gateway is the core job, but a node can also run any of these small publishers.
+Each mirrors the gateway's pattern — reads `edge/.env` for the site MQTT creds, publishes
+over MQTTS 8883 — and lands in `sensor_readings` under its own `source`; the server-side
+columns are already applied. Install steps live in each one's README.
+
+| Publisher | `source` | What it publishes | README |
+|---|---|---|---|
+| `edge/host-metrics/` | `host` | node self-health: SoC/CPU temp, throttle bitmask, CPU/mem/disk %, load, Wi-Fi RSSI, power | `edge/host-metrics/README.md` |
+| `edge/hue-collector/` | `hue` | Philips Hue motion/buttons + temp/lux/battery + light state (home node; bridge is LAN-only) | `edge/hue-collector/README.md` |
+| `edge/ssh-monitor/` | `security` | SSH-exposure counters from journald + fail2ban (root systemd service) | `edge/ssh-monitor/README.md` |
+
+`edge/.env` is the **shared** credential file: every publisher on a node reads the same
+`SITE` + MQTT creds from it (the ssh-monitor copies it to `/etc/ssh-monitor.env`; the Hue
+collector adds `HUE_BRIDGE`/`HUE_KEY`). None of these needs inbound network — all publish
+outbound to the VPS, same as the gateway.
 
 ---
 
@@ -350,6 +376,10 @@ because nothing crashes.
 | `server/mosquitto/acl` | per-site write permissions (home + summer staged) |
 | `edge/store-and-forward/mosquitto.conf.template` | §8 local buffering broker (deferrable) |
 | `edge/watchdog/` | gateway watchdog — auto-restart on the silent BLE wedge |
+| `edge/ble-publisher/` | Profile C — BlueZ-cooperative BLE publisher (desktop/shared-adapter nodes) |
+| `edge/host-metrics/` | `source='host'` node self-health publisher |
+| `edge/hue-collector/` | `source='hue'` Philips Hue collector (home node) |
+| `edge/ssh-monitor/` | `source='security'` SSH-exposure publisher (root service) |
 
 ---
 

@@ -6,6 +6,12 @@ Mosquitto ← RuuviBridge (one per site), plus two feeder services that also pub
 observations, `source='fmi'`). Only Caddy (80/443) and Mosquitto's TLS listener (8883)
 are exposed; everything else is internal.
 
+Telegraf lands every source in the one `sensor_readings` table, told apart by a `source`
+tag: `ruuvi`, `fmi`, plus three published by **edge-side** collectors (not server
+services) — `host` (`edge/host-metrics`), `hue` (`edge/hue-collector`), and `security`
+(`edge/ssh-monitor`). `host`/`hue`/`security` emit clean values and skip the decoder,
+publishing straight to `<site>/<source>/<id>`.
+
 ## Deploy (fresh VPS, M1 done)
 
 ```bash
