@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""DRAFT — Hue Bridge collector: CLIP v2 event stream -> MQTT -> sensor_readings.
+"""Hue Bridge collector: CLIP v2 event stream -> MQTT -> sensor_readings.
 
-Runs on the HOME edge node (the bridge is LAN-only). Subscribes to the bridge's
+Live on the HOME edge node (the bridge is LAN-only). Subscribes to the bridge's
 server-sent event stream and publishes per-device JSON to <site>/hue/<device-uuid>
 over the platform's external MQTTS listener (same site credentials as host-metrics).
 Telegraf maps site/source/sensor_id from the topic; see README for the telegraf and
-migration (007) pieces this pairs with.
+migration (007 + 008) pieces this pairs with.
 
 What it emits (fields chosen to be Telegraf-JSON-parser-safe: numbers + whitelisted
 strings only — booleans are sent as 0/1 because the parser drops JSON booleans):
@@ -14,16 +14,19 @@ strings only — booleans are sent as 0/1 because the parser drops JSON booleans
     device_power  {"name": ..., "battery_pct": 87}            sensors + remotes
     motion        {"name": ..., "motion": 1}                  event-driven (0 on clear)
     button        {"name": ..., "event": "b2:short_release"}  event-driven, all remotes
-Light/plug state is deliberately NOT logged in v1 — add a 'light' branch in decode()
-if wanted for automation mining later.
+    light         {"name": ..., "on_state": 1, "brightness": 80.0, "mirek": 366}
+                  every light/plug, when LOG_LIGHTS=1 (default). PARTIAL rows — only the
+                  changed sub-fields arrive per event. LOG_LIGHTS=0 stops it (it is chatty).
 
 Config via env: HUE_BRIDGE, HUE_KEY (or HUE_KEY_FILE), SITE (default home),
-MQTT_HOST/MQTT_PORT/MQTT_USER/MQTT_PASS (TLS), SNAPSHOT_INTERVAL (s, default 900).
+MQTT_HOST/MQTT_PORT/MQTT_USER/MQTT_PASS (TLS), SNAPSHOT_INTERVAL (s, default 900),
+LOG_LIGHTS (default 1).
 
-ASSUMPTIONS TO VERIFY AT PROBE TIME (public-docs based, untested against this bridge):
-  * button events expose button_report.event (newer fw) or last_event (older) and
-    metadata.control_id for which button — both handled below, verify shapes.
-  * motion events may nest under motion.motion or motion.motion_report.motion.
+Verified against the live bridge 2026-07-06:
+  * button events carry NO metadata.control_id — only the button resource id — so the
+    control number comes from a resource-id -> control_id map built at startup.
+  * motion/temperature/light_level use the *_report nesting (direct fields also present
+    when valid; disabled sensors omit values entirely — handled).
   * light_level raw -> lux: 10^((raw-1)/10000).
   * SSE data lines are JSON arrays of {type:'update', data:[resource,...]}.
 """

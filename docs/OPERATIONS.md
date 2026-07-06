@@ -15,14 +15,19 @@ locations, credentials). Every recipe preserves that split.
 | Thing | Where | Committed? |
 |---|---|---|
 | Stack config (compose, telegraf, mosquitto, dashboards) | `server/…` | ✅ |
+| Edge publishers (BLE gateway, host metrics, Hue, SSH monitor) | `edge/…` code; per-node `.env` / `/etc/ssh-monitor.env` | ✅ code; ❌ the per-node `.env` secrets |
 | Tag names / owners / places / categories | `server/db/sensor-meta/tags.csv` → loaded into DB table `sensor_meta` | ❌ CSV is git-ignored, lives on the operator's machine |
 | Weather stations (which FMI station backs which site) | `server/fmi-weather/stations.json` on the VPS | ❌ git-ignored |
-| Secrets (DB/Grafana/MQTT passwords) | `server/.env` on the VPS; MQTT users in `server/mosquitto/passwd` | ❌ |
+| Secrets (DB/Grafana/MQTT passwords; Hue key) | `server/.env` on the VPS; MQTT users in `server/mosquitto/passwd`; edge `.env` per node | ❌ |
 | Calibration offsets | DB table `sensor_calibration` (runbook: `docs/local/CALIBRATION-PLAN.md`) | ❌ (mechanism ✅: migration 004 + `scripts/calibrate-offsets.sh`) |
 | Measurement data | TimescaleDB `sensor_readings` (+ `sensor_readings_1min`/`_hourly` aggregates) | — |
 | Personal runbooks / real constants | `docs/local/` | ❌ git-ignored |
 
-Deploying config = `git push`, then on the VPS `git pull` + the restart listed in §8.
+The platform ingests **six sources** into the one `sensor_readings` table, told apart by
+the `source` tag: `ruuvi` (tags + Air), `host` (node self-health), `fmi` (weather),
+`hue` (Philips Hue), `security` (SSH exposure). Recipes for each are below.
+
+Deploying config = `git push`, then on the VPS `git pull` + the restart listed in §10.
 
 ## 1. Rename a tag (or change owner/place/category/notes)
 
@@ -82,6 +87,10 @@ region to get full resolution for it. The crossover is the literal `10800` (seco
 each panel's SQL. The dashed grey line on Temperature panels is the nearest FMI weather
 station (10-min cadence — that's FMI's, not ours).
 
+There are six boards: **Koti** (home), **Vaunu** (summer), **Perf** (host metrics),
+**Security** (SSH exposure), **Hue** (temporary triage board), and an "other" board
+(VPS-only). All source their panels from `sensor_readings` filtered by `source`/`place`.
+
 **Editing dashboards:** edit in the browser, then pull the JSON back into git
 (`scripts/grafana-pull-dashboard.sh <uid>`) — a UI save alone is lost on rebuild. Keep
 panel SQL in raw mode and preserve both `UNION ALL` branches or long windows go slow.
@@ -105,7 +114,42 @@ Find a station's `fmisid` at https://en.ilmatieteenlaitos.fi/observation-station
 - More metrics: add `"humidity"`/`"pressure"` to a station's `parameters` — no schema
   change needed.
 
-## 6. Health checks
+## 6. Philips Hue (motion, buttons, light state)
+
+The **home edge node** runs the Hue collector (`edge/hue-collector/`, `source='hue'`): it
+streams the bridge's CLIP v2 server-sent events and logs **motion** (`motion` 0/1),
+**remote-button presses** (`event`, e.g. `b2:short_release`), the motion sensors'
+**temperature / lux / battery** (`battery_pct`), and — with `LOG_LIGHTS=1` (the default) —
+every light's **on/off** (`on_state` 0/1), **brightness** and **colour temperature**
+(`mirek`). One `sensor_id` per physical device, like a RuuviTag's metrics.
+
+- **Config** lives in the collector's git-ignored `.env`: bridge LAN IP + `HUE_KEY`
+  (the pairing application key — a credential), the site MQTT creds, and
+  `SNAPSHOT_INTERVAL` (default 900 s, the continuous-metrics heartbeat). Install / redeploy
+  steps and the required server-side pieces: `edge/hue-collector/README.md`.
+- **Quieten it:** set `LOG_LIGHTS=0` in the `.env` and restart the collector — light state
+  is chatty (hundreds of events/min under dynamic scenes); motion and buttons stay logged.
+- `motion`/`event` are point-in-time rows — query raw, don't average (the 1-min aggregate
+  ignores them by design). Device names flow into `sensor_name` (DB only, like tag names —
+  never the repo).
+
+## 7. SSH-exposure monitor (security)
+
+Any node with its SSH port exposed can run the monitor (`edge/ssh-monitor/`,
+`source='security'`): a **root** systemd service that each interval
+(`SSH_MONITOR_INTERVAL`, default 60 s) publishes how much SSH traffic it sees —
+`ssh_failed` (bad-password attempts), `ssh_accepted` (real logins), `ssh_ips` (distinct
+attacking IPs), and fail2ban's `f2b_banned` / `f2b_banned_total`. It reads journald and
+`fail2ban-client`, both root-only — hence the root service. One row per node per interval.
+
+- **Install:** `edge/ssh-monitor/README.md` (copy the script to `/usr/local/bin`, install
+  the env to `/etc/ssh-monitor.env` from the site's `edge/.env`, enable the unit). View it
+  on the **Security** dashboard.
+- The `f2b_*` gauges need fail2ban installed on the node (they read 0 without it).
+- Baseline before you expose a port is all zeros bar your own `ssh_accepted`; the failed /
+  IP / ban curves only climb once the port is actually reachable from the internet.
+
+## 8. Health checks
 
 ```bash
 ssh you@vps.example.com
@@ -122,25 +166,31 @@ docker exec -i server-timescaledb-1 psql -U postgres -d sensors -c \
  "SELECT site, source, count(*) FROM sensor_readings WHERE time > now()-interval '10 min' GROUP BY 1,2 ORDER BY 3 DESC"
 ```
 
-Rough expectations: tags ≈ one row per ~1–4 s each (dedupe removes re-broadcasts, so
-quiet Air-class devices legitimately produce fewer rows); host metrics ~30 s; FMI one row
-per 10 min per station.
+Rough expectations by `source`: `ruuvi` ≈ one row per ~1–4 s each (dedupe removes
+re-broadcasts, so quiet Air-class devices legitimately produce fewer); `host` ~30 s;
+`fmi` one row per 10 min per station; `hue` bursty/event-driven with a snapshot heartbeat
+every `SNAPSHOT_INTERVAL` (~15 min); `security` one row per node per `SSH_MONITOR_INTERVAL`
+(~1 min). Hue and security are edge-node services — if their rows stop, check the service
+on the node (`journalctl -u ssh-monitor` / the Hue collector), not the VPS.
 
-## 7. Backup / restore the private bits
+## 9. Backup / restore the private bits
 
 A `git clone` restores everything **except**: `server/.env`, `server/mosquitto/passwd`
 (VPS), `server/db/sensor-meta/tags.csv` (operator's machine),
-`server/fmi-weather/stations.json` (VPS), `docs/local/`. Keep copies of these in a
-password manager / private store, and refresh the copy whenever one changes.
-The measurement database itself: `pg_dump` off-VPS is planned under M8 (plan §11) — until
-that lands, the DB is unbacked-up.
+`server/fmi-weather/stations.json` (VPS), `docs/local/`, and the **per-node edge secrets**
+— the Hue collector's `.env` (holds `HUE_KEY`) and each node's `/etc/ssh-monitor.env`.
+Keep copies of these in a password manager / private store, and refresh the copy whenever
+one changes. The measurement database itself: `pg_dump` off-VPS is planned under M8
+(plan §11) — until that lands, the DB is unbacked-up.
 
 **Restore from scratch:** clone the repo on the VPS → restore `.env`, `passwd`,
 `stations.json` → `docker compose up -d` (init SQL creates the schema) → apply
-`server/db/migrations/*.sql` in order → load `tags.csv` (§1) → re-store calibration
-offsets (§3 history, or re-run).
+`server/db/migrations/*.sql` in order — **each column-adding migration needs the view
+dance (§10), and a naive "in order" run errors without it** → load `tags.csv` (§1) →
+re-store calibration offsets (§3 history, or re-run) → redeploy the edge publishers
+(their per-node `.env` restored from the private store).
 
-## 8. Deploying changes — what needs a restart?
+## 10. Deploying changes — what needs a restart?
 
 | You changed | Then |
 |---|---|
@@ -148,11 +198,28 @@ offsets (§3 history, or re-run).
 | `telegraf/telegraf.conf` | `docker compose restart telegraf` (seconds-long ingest gap) |
 | `fmi-weather/` code or `stations.json` | `docker compose up -d --build fmi-weather` / `restart fmi-weather` |
 | `docker-compose.yml` | `docker compose up -d` (recreates only changed services) |
-| A new `db/migrations/NNN_*.sql` | apply by hand: `docker exec -i server-timescaledb-1 psql -U postgres -d sensors -v ON_ERROR_STOP=1 < server/db/migrations/NNN_….sql` — migrations are **not** auto-run |
+| A new `db/migrations/NNN_*.sql` | apply by hand (migrations are **not** auto-run): `docker exec -i server-timescaledb-1 psql -U postgres -d sensors -v ON_ERROR_STOP=1 < server/db/migrations/NNN_….sql`. If it `ADD COLUMN`s to `sensor_readings`, do the **view dance** below. |
 | `mosquitto/` config or ACL | `docker compose restart mosquitto` |
+| An `edge/…` publisher | redeploy on the node, not the VPS (per that publisher's README) |
 | `tags.csv` / calibration | nothing — both are query-time (DB contents, not services) |
 
-## 9. Committing — the hygiene gate
+**The "004 view dance"** — any migration that adds a column to `sensor_readings` (007,
+008, 009 all did) must re-run `004_calibration.sql` so the calibrated view surfaces the new
+column, because `sensor_readings_cal` is `SELECT sr.*` and freezes its column list at
+CREATE time. But 004 drops `sensor_offset_current`, which 005's `sensor_readings_1min_cal`
+depends on — so the order matters. After applying `NNN_*.sql`:
+
+1. `DROP VIEW IF EXISTS sensor_readings_1min_cal;`
+2. re-apply `004_calibration.sql`
+3. re-run the `CREATE OR REPLACE VIEW sensor_readings_1min_cal …` block from
+   `005_onemin_aggregate.sql`
+
+Each such migration's own header repeats these steps. Skip the dance and the new column
+simply never appears in `sensor_readings_cal`; run a naive "apply in order" restore and it
+**errors**, because re-applying 004 fails while the 1min_cal view still references the
+view 004 is about to drop.
+
+## 11. Committing — the hygiene gate
 
 This repo is **public**. Before every commit, check the staged diff *and the commit
 message you're about to write* for personal identifiers: real tag names, hostnames,

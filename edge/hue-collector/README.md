@@ -1,4 +1,4 @@
-# Hue collector (DRAFT — not deployed)
+# Hue collector
 
 Logs Philips Hue data into the platform for analysis: **motion events and remote-control
 button presses** (the automation-mining signals), plus **temperature, illuminance (lux)
@@ -26,18 +26,22 @@ MQTT_USER=<site user> / MQTT_PASS=<site pass>
 SNAPSHOT_INTERVAL=900
 ```
 
-## Server-side pieces required before first deploy
+## Server-side pieces (applied — Hue is live)
 
-1. **Migration `server/db/migrations/007_hue_columns.sql`** (drafted): adds `motion`
-   (0/1), `event` (text), `battery_pct`. Re-apply `004_calibration.sql` afterwards —
-   `sensor_readings_cal` freezes its column list at CREATE time.
-2. **Telegraf** (`server/telegraf/telegraf.conf`) — three edits on the shared consumer:
+These are in place on the VPS; listed here so a from-scratch restore can reproduce them.
+
+1. **Migrations `007_hue_columns.sql`** (adds `motion` 0/1, `event` text, `battery_pct`)
+   **and `008_light_state.sql`** (adds `on_state` 0/1, `brightness`, `mirek`, for the
+   `LOG_LIGHTS=1` default). Each needs the 004 view dance afterwards —
+   `sensor_readings_cal` freezes its column list at CREATE time (see the migration
+   headers, or `docs/OPERATIONS.md` §10).
+2. **Telegraf** (`server/telegraf/telegraf.conf`) — on the shared consumer:
    * `topics`: add `"+/hue/+"`
    * a topic_parsing block: `topic = "+/hue/+"` / `tags = "site/source/sensor_id"`
    * `json_string_fields`: add `"event"` (booleans/strings are dropped by the JSON
      parser unless whitelisted — which is also why motion is published as 0/1)
-   * `fieldinclude` in outputs.postgresql: add `"motion", "event", "battery_pct"`
-     (`temperature`/`lux` are already whitelisted)
+   * `fieldinclude` in outputs.postgresql: add `"motion", "event", "battery_pct"` and
+     `"on_state", "brightness", "mirek"` (`temperature`/`lux` are already whitelisted)
    then `docker compose restart telegraf`.
 
 ## Dashboards / analysis notes

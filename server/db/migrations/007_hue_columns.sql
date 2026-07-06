@@ -1,5 +1,5 @@
--- 007_hue_columns.sql — DRAFT (pairs with edge/hue-collector; do not apply before that
--- lands). Event/state columns for non-Ruuvi sources, first user: Philips Hue.
+-- 007_hue_columns.sql — event/state columns for non-Ruuvi sources, first user: Philips
+-- Hue (pairs with edge/hue-collector; applied — Hue is live on the home node).
 --   motion       0/1 motion events (SMALLINT not BOOLEAN: the Telegraf JSON parser drops
 --                booleans, so the collector publishes numeric 0/1)
 --   event        discrete events as text, e.g. Hue remote 'b2:short_release'
