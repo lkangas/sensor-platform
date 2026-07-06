@@ -106,7 +106,7 @@ Docs: [ruuvi-go-gateway](https://github.com/Scrin/ruuvi-go-gateway) ·
 
 ## 1. Prerequisites — decisions to lock before building
 
-- [ ] **VPS — fresh or shared, decide up front.** Two valid paths:
+- [x] **VPS — fresh or shared, decide up front.** Two valid paths:
       - **Fresh, dedicated VPS.** 2 vCPU / 4 GB RAM, ~40 GB disk, Ubuntu 24.04 LTS
         (Hetzner CX23, or equivalent on any provider) — this runs the whole stack
         comfortably with headroom, and every phase below is written for this case by
@@ -119,10 +119,10 @@ Docs: [ruuvi-go-gateway](https://github.com/Scrin/ruuvi-go-gateway) ·
         which app's Caddy instance is canonical (only one process can bind 80/443).
       Either way, Hetzner's shared-vCPU plans resize vertically with minimal downtime if
       you later need more room — cheap insurance either path.
-- [ ] **Domain name.** A subdomain pointed at the VPS (e.g. `metrics.example.com`) so
+- [x] **Domain name.** A subdomain pointed at the VPS (e.g. `metrics.example.com`) so
       Caddy can obtain Let's Encrypt certificates automatically. Needed for HTTPS on
       Grafana and for TLS on the MQTT listener.
-- [ ] **Edge hardware, per site.** You don't need matching hardware at every site — the
+- [x] **Edge hardware, per site.** You don't need matching hardware at every site — the
       edge role is light enough (scan BLE, forward MQTT) that almost anything works.
       Broadly, two tiers:
       - **Any x86_64 machine, or an ARMv7/ARMv8 Pi (3-series or better).** These are
@@ -149,12 +149,12 @@ Docs: [ruuvi-go-gateway](https://github.com/Scrin/ruuvi-go-gateway) ·
       - Whatever the board, use a good microSD card (A1/A2) and a known-good power
         supply — undervoltage causes flaky Wi-Fi/Bluetooth, especially bad at a remote
         site.
-- [ ] **RuuviTags.** You have these. Note each tag's MAC address; you'll map MACs to
+- [x] **RuuviTags.** You have these. Note each tag's MAC address; you'll map MACs to
       friendly names later.
-- [ ] **Git repository.** GitHub (private) or self-hosted. Create this **first**, before
+- [x] **Git repository.** GitHub (private) or self-hosted. Create this **first**, before
       Phase 0 — the local verification script goes into it too, and every subsequent
       working checkpoint gets committed as it's reached, not batched up later.
-- [ ] **A password manager / secrets store** for the credentials you'll generate
+- [x] **A password manager / secrets store** for the credentials you'll generate
       (Postgres password, Grafana admin, per-site MQTT users).
 
 ---
@@ -241,12 +241,12 @@ else in this plan follows once this works.
 
 Goal: a hardened host with Docker, reachable over HTTPS.
 
-- [ ] Create the VPS with your SSH key; log in as root once. *(If sharing an existing
+- [x] Create the VPS with your SSH key; log in as root once. *(If sharing an existing
       host instead: skip this — the box, user, SSH hardening, and Docker are presumably
       already in place; confirm rather than re-do them.)*
-- [ ] Create a non-root sudo user; disable root SSH and password auth in
+- [x] Create a non-root sudo user; disable root SSH and password auth in
       `/etc/ssh/sshd_config` (`PermitRootLogin no`, `PasswordAuthentication no`).
-- [ ] `ufw` firewall — allow only what's needed:
+- [x] `ufw` firewall — allow only what's needed:
       - `22/tcp` (SSH)
       - `443/tcp` (HTTPS)
       - `8883/tcp` (MQTT over TLS)
@@ -254,10 +254,10 @@ Goal: a hardened host with Docker, reachable over HTTPS.
         are never exposed** — they stay on the internal Docker network.
       *(If sharing an existing host: `443` is presumably already open for the other
       app — this stack only adds `8883`, not a duplicate `443` rule.)*
-- [ ] Install `fail2ban` and enable `unattended-upgrades`.
-- [ ] Install Docker Engine + the Compose plugin (official convenience script or apt repo).
-- [ ] Point the DNS **A record** for your subdomain at the VPS IP.
-- [ ] **If sharing an existing host:** one more decision before Phase 2 — only one
+- [x] Install `fail2ban` and enable `unattended-upgrades`.
+- [x] Install Docker Engine + the Compose plugin (official convenience script or apt repo).
+- [x] Point the DNS **A record** for your subdomain at the VPS IP.
+- [x] **If sharing an existing host:** one more decision before Phase 2 — only one
       process can bind ports 80/443. This stack's Caddy must not also try to bind them;
       either fold this stack's site block into the other app's existing Caddyfile, or
       migrate the other app's site block into this stack's Caddyfile instead. Pick which
@@ -863,20 +863,24 @@ ingestion contract").
 Each milestone below is committed to Git as soon as its checkpoint passes (principle 5)
 — the list below is the order of *working states*, not just tasks to finish and batch up.
 
-- [ ] **M0 — Verified data source:** repo created; local test script confirms readable
+- [x] **M0 — Verified data source:** repo created; local test script confirms readable
       RuuviTag data (Phase 0). The actual starting point.
-- [ ] **M1 — Foundation:** VPS hardened; Docker installed; DNS pointed.
-- [ ] **M2 — Server up:** full compose stack healthy; Grafana reachable over HTTPS.
-- [ ] **M3 — Schema live:** hypertable + compression + retention + continuous aggregate.
-- [ ] **M4 — Glue proven:** the test script (now publishing over MQTT) flows through
+- [x] **M1 — Foundation:** VPS hardened; Docker installed; DNS pointed.
+- [x] **M2 — Server up:** full compose stack healthy; Grafana reachable over HTTPS.
+- [x] **M3 — Schema live:** hypertable + compression + retention + continuous aggregate.
+- [x] **M4 — Glue proven:** the test script (now publishing over MQTT) flows through
       decode → rows in DB.
-- [ ] **M5 — First site:** first edge node set up and forwarding; end-to-end data in
-      Grafana.
-- [ ] **M6 — Dashboards & alerts:** provisioned as code; freeze/offline/battery alerts.
+- [x] **M5 — First site:** first edge node set up and forwarding; end-to-end data in
+      Grafana. *(done — home node live 2026-07-03, summer site live 2026-07-05)*
+- [x] **M6 — Dashboards & alerts:** provisioned as code; freeze/offline/battery alerts.
+      *(done for dashboards — four boards, calibrated + time-adaptive; only the
+      low-battery alert exists and no further alerting is planned, by choice)*
 - [ ] **M7 — Repeatable edge:** bootstrap script turns a blank device into a live site in
-      one run.
-- [ ] **M8 — Fleet & extras:** second site added; (Ansible + Tailscale as sites grow);
-      weather source; backups running and test-restored.
+      one run. *(script committed but NOT yet proven on a blank device — the second site
+      was a flip of an existing node, not a from-scratch bootstrap)*
+- [ ] **M8 — Fleet & extras:** ~~second site added~~ *(done 2026-07-05)*; (Ansible +
+      Tailscale as sites grow); ~~weather source~~ *(done 2026-07-06 — FMI, §10)*;
+      backups running and test-restored *(the remaining substance of this milestone)*.
 - [ ] **M9 — User manual:** a comprehensive but compact, easy-to-understand operator's
       manual for the everyday/occasional tasks the platform accumulates — e.g. renaming a
       tag (edit local `tags.csv` → load on the VPS), adding/moving a tag or site,

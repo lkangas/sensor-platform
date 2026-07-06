@@ -41,9 +41,11 @@ ansible/    optional fleet management (3+ nodes)
 | M2 — Server up (stack healthy, HTTPS) | ✅ done — https://vps.example.com + MQTTS 8883 |
 | M3 — Schema live (hypertable + caggs) | ✅ done — sensor_readings + hourly & 1-min rollups + query-time calibration |
 | M4 — Glue proven (publish → decode → DB) | ✅ done — 8 tags, 37 rows on first run |
-| M6 — Dashboards & alerts as code | ✅ done — public Koti/Vaunu dashboards (calibrated, time-adaptive); low-battery alert fire-tested |
-| M5 — First edge nodes | 📋 planned & templated — [docs/EDGE-SETUP.md](docs/EDGE-SETUP.md); awaiting hardware |
-| M7, M8 | not started |
+| M5 — First edge nodes | ✅ done — two sites live and forwarding ([docs/EDGE-SETUP.md](docs/EDGE-SETUP.md)) |
+| M6 — Dashboards & alerts as code | ✅ done — four public dashboards (calibrated, time-adaptive); low-battery alert fire-tested |
+| M7 — Repeatable edge (bootstrap) | 🟡 script committed, not yet proven on a blank device |
+| M8 — Fleet & extras | 🟡 partial — second site ✅, FMI weather source ✅; backups + fleet tooling pending |
+| M9 — Operator's user manual | 📋 not started |
 
 ## Getting started (M0)
 
