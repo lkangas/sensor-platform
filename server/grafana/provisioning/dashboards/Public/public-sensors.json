@@ -264,7 +264,33 @@
             "spanNulls": true
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^FMI/"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    8,
+                    8
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "rgba(150,150,150,0.9)"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -287,6 +313,16 @@
           "format": "time_series",
           "rawQuery": true,
           "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, CASE WHEN '${series}' = 'raw' THEN sr.humidity ELSE sr.humidity_cal END AS humidity\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Koti' AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, CASE WHEN '${series}' = 'raw' THEN a.hum_avg ELSE a.hum_avg_cal END AS humidity\nFROM sensor_readings_1min_cal a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Koti' AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", sr.sensor_id AS metric, sr.humidity\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'fmi' AND sr.site = 'home' AND sr.humidity IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, a.sensor_id AS metric, a.hum_avg\nFROM sensor_readings_1min a\nWHERE $__timeFilter(a.bucket) AND a.site = 'home' AND a.sensor_id LIKE 'FMI%' AND a.hum_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
         }
       ]
     },
