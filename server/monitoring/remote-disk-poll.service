@@ -1,0 +1,9 @@
+[Unit]
+Description=Poll remote hosts' disk usage -> sensor_readings (source=host)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=lauri
+ExecStart=/usr/local/bin/remote-disk-poll.sh
