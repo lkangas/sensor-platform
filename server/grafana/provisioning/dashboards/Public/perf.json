@@ -68,6 +68,18 @@
       "tooltip": "Host performance metrics",
       "type": "link",
       "url": "/d/perf"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Security",
+      "tooltip": "SSH exposure: attempts, logins, fail2ban bans",
+      "url": "/d/security",
+      "type": "link"
     }
   ],
   "panels": [

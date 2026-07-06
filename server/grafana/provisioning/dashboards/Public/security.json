@@ -1,0 +1,71 @@
+{
+  "annotations": { "list": [] },
+  "id": null,
+  "uid": "security",
+  "title": "Security (SSH exposure)",
+  "tags": ["public"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "refresh": "1m",
+  "time": { "from": "now-24h", "to": "now" },
+  "templating": { "list": [] },
+  "links": [
+    { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Koti", "tooltip": "Koti (home) sensors", "type": "link", "url": "/d/public-sensors" },
+    { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Vaunu", "tooltip": "Vaunu (caravan) sensors", "type": "link", "url": "/d/vaunu-sensors" },
+    { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Perf", "tooltip": "Host performance metrics", "type": "link", "url": "/d/perf" },
+    { "asDropdown": false, "icon": "dashboard", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Security", "tooltip": "SSH exposure: attempts, logins, fail2ban bans", "type": "link", "url": "/d/security" }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "SSH failed logins (per minute)",
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "bars", "lineWidth": 1, "fillOpacity": 70, "showPoints": "never" }, "color": { "mode": "fixed", "fixedColor": "#E24B4A" } }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["sum"] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", sr.sensor_id AS metric, sr.ssh_failed\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'security' AND sr.ssh_failed IS NOT NULL\nORDER BY 1" }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Accepted logins (your own access, per minute)",
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "bars", "lineWidth": 1, "fillOpacity": 70, "showPoints": "never" }, "color": { "mode": "fixed", "fixedColor": "#1D9E75" } }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["sum"] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", sr.sensor_id AS metric, sr.ssh_accepted\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'security' AND sr.ssh_accepted IS NOT NULL\nORDER BY 1" }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Distinct attacking source IPs (per minute)",
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 9 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "linear", "lineWidth": 1, "fillOpacity": 10, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": [] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", sr.sensor_id AS metric, sr.ssh_ips\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'security' AND sr.ssh_ips IS NOT NULL\nORDER BY 1" }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "fail2ban: currently banned & cumulative",
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 9 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "stepAfter", "lineWidth": 1, "fillOpacity": 10, "showPoints": "never", "spanNulls": true } }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["last"] }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", 'currently banned' AS metric, sr.f2b_banned\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'security' AND sr.f2b_banned IS NOT NULL\nORDER BY 1" },
+        { "refId": "B", "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT sr.\"time\", 'total banned (cumulative)' AS metric, sr.f2b_banned_total\nFROM sensor_readings sr\nWHERE $__timeFilter(sr.\"time\") AND sr.source = 'security' AND sr.f2b_banned_total IS NOT NULL\nORDER BY 1" }
+      ]
+    }
+  ]
+}

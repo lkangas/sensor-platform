@@ -1,0 +1,15 @@
+[Unit]
+Description=SSH/fail2ban exposure telemetry -> MQTT (source=security)
+After=network-online.target fail2ban.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+EnvironmentFile=/etc/ssh-monitor.env
+ExecStart=/usr/local/bin/ssh-monitor.sh
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target
