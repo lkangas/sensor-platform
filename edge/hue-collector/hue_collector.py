@@ -115,15 +115,16 @@ def publish(client, item):
 
 
 def snapshot_loop(client):
-    """Heartbeat for the continuous metrics: distinguishes 'no change' from 'collector dead'."""
+    """Heartbeat for the continuous metrics: distinguishes 'no change' from 'collector
+    dead'. Runs once at startup too, so temp/lux/battery appear immediately on deploy."""
     while True:
-        time.sleep(SNAPSHOT)
         try:
             for rtype in ("temperature", "light_level", "device_power"):
                 for item in hue_get(f"/clip/v2/resource/{rtype}").get("data", []):
                     publish(client, item)
         except Exception as exc:
             print(f"snapshot error: {exc}", flush=True)
+        time.sleep(SNAPSHOT)
 
 
 def event_loop(client):

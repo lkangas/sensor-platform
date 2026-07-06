@@ -7,6 +7,12 @@
 --
 -- Apply to the live DB, THEN re-apply 004_calibration.sql: sensor_readings_cal is
 -- `SELECT sr.*` and freezes its column list at CREATE time (see 004's header).
+-- ⚠ 004 drops sensor_offset_current, which 005's sensor_readings_1min_cal depends on —
+-- re-applying 004 fails unless that view is dropped first and recreated after:
+--   1. this file
+--   2. DROP VIEW IF EXISTS sensor_readings_1min_cal;
+--   3. 004_calibration.sql
+--   4. the CREATE OR REPLACE VIEW sensor_readings_1min_cal block from 005
 -- The hourly/1-min aggregates deliberately ignore these columns (events aren't averages).
 ALTER TABLE sensor_readings ADD COLUMN IF NOT EXISTS motion      SMALLINT;
 ALTER TABLE sensor_readings ADD COLUMN IF NOT EXISTS event       TEXT;
