@@ -145,7 +145,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.temperature_cal AS temperature\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.temp_avg_cal AS temperature\nFROM sensor_readings_1min_cal a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.temperature_cal AS temperature\nFROM sensor_readings_cal sr LEFT JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND (m.owner = 'mine' AND m.place = 'Vaunu' OR m.sensor_id IS NULL AND sr.sensor_id LIKE '%:%' AND sr.site = 'summer') AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.temp_avg_cal AS temperature\nFROM sensor_readings_1min_cal a LEFT JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND (m.owner = 'mine' AND m.place = 'Vaunu' OR m.sensor_id IS NULL AND a.sensor_id LIKE '%:%' AND a.site = 'summer') AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
         },
         {
           "refId": "B",
@@ -233,7 +233,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.humidity_cal AS humidity\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.hum_avg_cal AS humidity\nFROM sensor_readings_1min_cal a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.humidity_cal AS humidity\nFROM sensor_readings_cal sr LEFT JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND (m.owner = 'mine' AND m.place = 'Vaunu' OR m.sensor_id IS NULL AND sr.sensor_id LIKE '%:%' AND sr.site = 'summer') AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.hum_avg_cal AS humidity\nFROM sensor_readings_1min_cal a LEFT JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND (m.owner = 'mine' AND m.place = 'Vaunu' OR m.sensor_id IS NULL AND a.sensor_id LIKE '%:%' AND a.site = 'summer') AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
         },
         {
           "refId": "B",
@@ -321,7 +321,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.pressure_cal AS pressure\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.pressure IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.pressure_avg_cal AS pressure\nFROM sensor_readings_1min_cal a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.pressure_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.pressure_cal AS pressure\nFROM sensor_readings_cal sr LEFT JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND (m.owner = 'mine' AND m.place = 'Vaunu' OR m.sensor_id IS NULL AND sr.sensor_id LIKE '%:%' AND sr.site = 'summer') AND sr.pressure IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.pressure_avg_cal AS pressure\nFROM sensor_readings_1min_cal a LEFT JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND (m.owner = 'mine' AND m.place = 'Vaunu' OR m.sensor_id IS NULL AND a.sensor_id LIKE '%:%' AND a.site = 'summer') AND a.pressure_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
         },
         {
           "refId": "B",
@@ -383,7 +383,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.seq\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.seq IS NOT NULL AND sr.co2 IS NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.seq_max\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.seq_max IS NOT NULL AND a.co2_avg IS NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.seq\nFROM sensor_readings sr LEFT JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND (m.owner = 'mine' AND m.place = 'Vaunu' OR m.sensor_id IS NULL AND sr.sensor_id LIKE '%:%' AND sr.site = 'summer') AND sr.seq IS NOT NULL AND sr.co2 IS NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.seq_max\nFROM sensor_readings_1min a LEFT JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND (m.owner = 'mine' AND m.place = 'Vaunu' OR m.sensor_id IS NULL AND a.sensor_id LIKE '%:%' AND a.site = 'summer') AND a.seq_max IS NOT NULL AND a.co2_avg IS NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
         }
       ]
     },
@@ -435,7 +435,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.movement_ctr\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.movement_ctr IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.movement_max\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.movement_max IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.movement_ctr\nFROM sensor_readings sr LEFT JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND (m.owner = 'mine' AND m.place = 'Vaunu' OR m.sensor_id IS NULL AND sr.sensor_id LIKE '%:%' AND sr.site = 'summer') AND sr.movement_ctr IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.movement_max\nFROM sensor_readings_1min a LEFT JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND (m.owner = 'mine' AND m.place = 'Vaunu' OR m.sensor_id IS NULL AND a.sensor_id LIKE '%:%' AND a.site = 'summer') AND a.movement_max IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
         }
       ]
     },
@@ -487,7 +487,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.accel_z\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.accel_z IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.accel_z_avg\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.accel_z_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.accel_z\nFROM sensor_readings sr LEFT JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND (m.owner = 'mine' AND m.place = 'Vaunu' OR m.sensor_id IS NULL AND sr.sensor_id LIKE '%:%' AND sr.site = 'summer') AND sr.accel_z IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.accel_z_avg\nFROM sensor_readings_1min a LEFT JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND (m.owner = 'mine' AND m.place = 'Vaunu' OR m.sensor_id IS NULL AND a.sensor_id LIKE '%:%' AND a.site = 'summer') AND a.accel_z_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
         }
       ]
     },
@@ -539,7 +539,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.battery_mv\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.battery_mv IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.battery_min\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.battery_min IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.battery_mv\nFROM sensor_readings sr LEFT JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND (m.owner = 'mine' AND m.place = 'Vaunu' OR m.sensor_id IS NULL AND sr.sensor_id LIKE '%:%' AND sr.site = 'summer') AND sr.battery_mv IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.battery_min\nFROM sensor_readings_1min a LEFT JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND (m.owner = 'mine' AND m.place = 'Vaunu' OR m.sensor_id IS NULL AND a.sensor_id LIKE '%:%' AND a.site = 'summer') AND a.battery_min IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
         }
       ]
     },
@@ -591,7 +591,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.rssi\nFROM sensor_readings sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Vaunu' AND sr.rssi IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.rssi_avg\nFROM sensor_readings_1min a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Vaunu' AND a.rssi_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, sr.rssi\nFROM sensor_readings sr LEFT JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND (m.owner = 'mine' AND m.place = 'Vaunu' OR m.sensor_id IS NULL AND sr.sensor_id LIKE '%:%' AND sr.site = 'summer') AND sr.rssi IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, a.rssi_avg\nFROM sensor_readings_1min a LEFT JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND (m.owner = 'mine' AND m.place = 'Vaunu' OR m.sensor_id IS NULL AND a.sensor_id LIKE '%:%' AND a.site = 'summer') AND a.rssi_avg IS NOT NULL AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
         }
       ]
     }
