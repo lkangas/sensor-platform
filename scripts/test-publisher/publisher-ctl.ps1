@@ -19,6 +19,8 @@ param(
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Publisher = Join-Path $ScriptDir "ruuvi_test_publisher.py"
 $LogFile   = Join-Path $env:TEMP "ruuvi-publisher.log"
+# VPS hostname — set $env:MQTT_HOST (the repo names no host); falls back to a placeholder.
+$MqttHost  = if ($env:MQTT_HOST) { $env:MQTT_HOST } else { "vps.example.com" }
 
 function Get-SupervisorProc {
     Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" |
@@ -38,7 +40,7 @@ switch ($Command) {
         while ($true) {
             Add-Content $LogFile "supervisor: starting publisher $(Get-Date -Format o)"
             & python $Publisher --quiet `
-                --mqtt-host petzval.dy.fi --mqtt-port 8883 --tls `
+                --mqtt-host $MqttHost --mqtt-port 8883 --tls `
                 --mqtt-user site-test --site test *>> $LogFile
             Add-Content $LogFile "supervisor: publisher exited (code $LASTEXITCODE), restarting in 10s"
             Start-Sleep -Seconds 10

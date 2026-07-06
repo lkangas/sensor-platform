@@ -1,7 +1,7 @@
 #!/bin/sh
 # Wrapper entrypoint for eclipse-mosquitto. The 8883 TLS listener reuses the
-# Let's Encrypt certificate Caddy obtains for petzval.dy.fi (shared caddy-data
-# volume, mounted read-only at /caddy-data).
+# Let's Encrypt certificate Caddy obtains for $MQTT_CERT_DOMAIN (the VPS public
+# FQDN; shared caddy-data volume, mounted read-only at /caddy-data).
 #
 # The internal 1883 listener must NEVER depend on TLS: mosquitto starts
 # immediately with the base config, and the 8883 listener is added via a
@@ -9,7 +9,7 @@
 # by a 12h renewal check that SIGHUPs mosquitto (it reloads certs on HUP).
 set -u
 
-DOMAIN="petzval.dy.fi"
+DOMAIN="${MQTT_CERT_DOMAIN:?MQTT_CERT_DOMAIN must be set (docker-compose passes it from PUBLIC_FQDN in server/.env)}"
 DEST="/mosquitto/certs"
 RTD="/mosquitto/rt.d"          # include_dir in mosquitto.conf; container-local
 mkdir -p "$RTD"

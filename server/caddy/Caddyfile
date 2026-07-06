@@ -1,9 +1,12 @@
 {
 	# ACME account contact — also enables issuer fallback (e.g. ZeroSSL) if
-	# Let's Encrypt is having an outage
-	email vostok@iki.fi
+	# Let's Encrypt is having an outage. Real value in server/.env (ACME_EMAIL).
+	email {$ACME_EMAIL}
 }
 
-petzval.dy.fi {
+# The public FQDN comes from server/.env (PUBLIC_FQDN), passed into the container
+# by docker-compose — the repo names no host. Caddy obtains the TLS cert for it;
+# mosquitto reuses that cert for its 8883 listener (MQTT_CERT_DOMAIN = PUBLIC_FQDN).
+{$PUBLIC_FQDN} {
 	reverse_proxy grafana:3000
 }

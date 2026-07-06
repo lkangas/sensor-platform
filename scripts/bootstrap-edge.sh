@@ -10,6 +10,9 @@ set -euo pipefail
 SITE="${1:?usage: bootstrap-edge.sh <SITE> <MQTT_USER> [docker|binary]}"
 MQTT_USER="${2:?missing MQTT_USER (e.g. site-home)}"
 PROFILE="${3:-docker}"
+# VPS public hostname — the 8883 TLS cert is issued for it and edge nodes verify it.
+# No default: the repo names no host, so pass it in the environment.
+MQTT_HOST="${MQTT_HOST:?set MQTT_HOST to your VPS public hostname (e.g. MQTT_HOST=vps.example.com)}"
 REPO_URL="${REPO_URL:-https://github.com/lkangas/sensor-platform.git}"
 REPO_DIR="${REPO_DIR:-$HOME/sensor-platform}"
 
@@ -28,7 +31,7 @@ cd "$REPO_DIR/edge"
 umask 077
 cat > .env <<EOF
 SITE=$SITE
-MQTT_HOST=${MQTT_HOST:-petzval.dy.fi}
+MQTT_HOST=$MQTT_HOST
 MQTT_PORT=${MQTT_PORT:-8883}
 MQTT_USER=$MQTT_USER
 MQTT_PASS=$MQTT_PASS

@@ -157,9 +157,9 @@ Per node, ~15 minutes of hands-on:
 4. **Bootstrap** — one command, from the repo's `scripts/`:
    ```bash
    curl -fsSL https://raw.githubusercontent.com/lkangas/sensor-platform/main/scripts/bootstrap-edge.sh \
-     | MQTT_PASS='<the site password from step 4a>' bash -s -- home site-home docker
+     | MQTT_HOST='<your VPS hostname>' MQTT_PASS='<the site password from step 4a>' bash -s -- home site-home docker
    ```
-   or clone first and run `scripts/bootstrap-edge.sh home site-home docker`
+   or clone first and run `MQTT_HOST='<your VPS hostname>' scripts/bootstrap-edge.sh home site-home docker`
    (it prompts for the password if `$MQTT_PASS` isn't set — never pass it on the
    visible command line). The script: clones the repo, writes `edge/.env`, renders
    `config.yml` from the template, installs Docker if missing, and starts the
