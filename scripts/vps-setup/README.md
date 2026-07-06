@@ -58,18 +58,13 @@ sudo systemctl restart fail2ban
 Installed via get.docker.com (Engine 29.x + compose plugin v5.x); `<user>` in the
 `docker` group.
 
-## dy.fi dynamic DNS
+## Dynamic DNS
 
-dy.fi only serves Finnish IPs (hence Helsinki DC) and expires a name after
-7 days without a refresh. The refresh **must originate from the VPS** — dy.fi
-binds the name to the request's source IP.
-
-- `dyfi-update` → `/usr/local/sbin/dyfi-update` (mode 755)
-- `dyfi-update.service` + `dyfi-update.timer` → `/etc/systemd/system/`,
-  `systemctl enable --now dyfi-update.timer` (runs 15 min after boot, then every
-  5 days)
-- Credentials: `/etc/dyfi.netrc` (root:600, **never in git**):
-  `machine www.dy.fi login <email> password <password>`
+The VPS's public hostname is kept current by a dynamic-DNS updater configured
+**out-of-band** — the provider, credentials, and refresh script live host-side and
+private (see `docs/local/`). The committed stack references the hostname only through
+`PUBLIC_FQDN` / `GRAFANA_ROOT_URL` in `server/.env`, so no provider or domain appears
+in this repo.
 
 ## Checkpoint (passed)
 
