@@ -43,6 +43,9 @@ SNAPSHOT = int(os.environ.get("SNAPSHOT_INTERVAL", "900"))
 CTX = ssl._create_unverified_context()   # bridge cert is self-signed
 
 devices = {}    # service-uuid -> {"dev": device-uuid, "name": str}
+buttons = {}    # button-resource-uuid -> control_id (1..4) — SSE button events carry NO
+                # metadata.control_id (verified against live events 2026-07-06), only the
+                # resource id; the mapping must come from the full resource at startup.
 
 
 def hue_get(path, timeout=20):
@@ -61,8 +64,13 @@ def load_device_map():
             m[s["rid"]] = {"dev": d["id"], "name": name}
     devices.clear()
     devices.update(m)
+    b = {r["id"]: r.get("metadata", {}).get("control_id", 0)
+         for r in hue_get("/clip/v2/resource/button").get("data", [])}
+    buttons.clear()
+    buttons.update(b)
     print(f"device map: {len(devices)} services across "
-          f"{len({v['dev'] for v in devices.values()})} devices", flush=True)
+          f"{len({v['dev'] for v in devices.values()})} devices; "
+          f"{len(buttons)} buttons", flush=True)
 
 
 def decode(item):
@@ -90,7 +98,7 @@ def decode(item):
         ev = rep.get("button_report", {}).get("event") or rep.get("last_event")
         if not ev:
             return None
-        ctl = item.get("metadata", {}).get("control_id", 0)
+        ctl = buttons.get(item.get("id")) or item.get("metadata", {}).get("control_id", 0)
         return {"event": f"b{ctl}:{ev}"}
     return None
 

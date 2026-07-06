@@ -48,8 +48,13 @@ SNAPSHOT_INTERVAL=900
 * Device names flow into `sensor_name` (DB only — same privacy model as tag names:
   fine in Grafana, never in the repo).
 
-## Verify at probe time (public-docs assumptions in the code)
+## Probe-verified (live bridge + event capture, 2026-07-06)
 
-* button: `button_report.event` vs legacy `last_event`; `metadata.control_id` numbering.
-* motion/temperature/light_level: `*_report` nesting vs direct fields (both handled).
-* lux conversion `10^((raw-1)/10000)`; SSE payload framing.
+* motion / temperature / light_level use the `*_report` nesting (direct fields also
+  present when valid; disabled sensors omit values entirely — handled).
+* button events expose `button_report.event` + `last_event` but **no `control_id`** — the
+  event only carries the button resource id, hence the startup button-id→control_id map.
+* Event vocabulary confirmed: initial_press, repeat, short_release, long_release, long_press.
+* Lux formula and SSE framing (`data:` lines of update arrays) confirmed.
+* Light state is CHATTY (hundreds of events in minutes under dynamic scenes) — another
+  reason light logging stays an explicit opt-in extension.
