@@ -42,5 +42,12 @@ Check: `systemctl --user status ruuvi-host-metrics` and, on the VPS,
 `mosquitto_sub -t '+/host/#' -v`.
 
 Config knobs (env): `HOST_METRICS_INTERVAL` (default 30 s), `HOST_METRICS_ENV` (path to
-`.env`). Non-Pi hosts simply omit the Pi-only fields (`throttled`/`core_volt`) and add the
-x86 ones (`ssd_temp`/`power_w`/per-core temps) where the kernel exposes them.
+`.env`), `HOST_NODE` (the node's `sensor_id`; defaults to `hostname`). Non-Pi hosts simply
+omit the Pi-only fields (`throttled`/`core_volt`) and add the x86 ones
+(`ssd_temp`/`power_w`/per-core temps) where the kernel exposes them.
+
+**Container-deploy caveat:** in a container `hostname` is the random container id, so set
+`HOST_NODE` to the host's real name — **persistently**, in `edge/host-metrics/.env`
+(`HOST_NODE=<hostname>`). Without it, every container recreate mints a fresh
+`<container-id>-cpuN` series on the Perf board (systemd deploys are unaffected — they run on
+the host and see the real hostname).

@@ -10,7 +10,11 @@ services:
     container_name: host-metrics
     restart: unless-stopped
     environment:
-      HOST_NODE: ${HOST_NODE:-}   # the host's real hostname; deploy with HOST_NODE=$(hostname)
+      # The host's real hostname → the node's sensor_id. WITHOUT it the container id is used,
+      # and the Perf board gains a fresh <container-id>-cpuN series on every recreate. Set it
+      # PERSISTENTLY in this dir's .env (edge/host-metrics/.env: HOST_NODE=<hostname>) so every
+      # `docker compose up` picks it up — a one-off HOST_NODE=... on the CLI is lost on recreate.
+      HOST_NODE: ${HOST_NODE:-}
     env_file: ../.env            # SITE + MQTT creds (already present for the edge)
     volumes:
       - /sys:/sys:ro             # hwmon (temps), powercap (RAPL), cpufreq
