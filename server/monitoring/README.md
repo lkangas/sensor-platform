@@ -25,4 +25,4 @@ sudo install -m755 server/monitoring/remote-disk-poll.sh /usr/local/bin/
 sudo cp server/monitoring/remote-disk-poll.{service,timer} /etc/systemd/system/
 sudo systemctl daemon-reload && sudo systemctl enable --now remote-disk-poll.timer
 ```
-Runs as the `lauri` user (needs its SSH config/key + docker access). Every 5 min.
+Runs as the `lauri` user (needs its SSH config/key + docker access). Every minute.

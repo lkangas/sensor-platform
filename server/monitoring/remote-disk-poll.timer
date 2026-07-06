@@ -1,10 +1,10 @@
 [Unit]
-Description=Run remote-disk-poll every 5 minutes
+Description=Run remote-disk-poll every minute
 
 [Timer]
-OnBootSec=2min
-OnUnitActiveSec=5min
-RandomizedDelaySec=30
+OnBootSec=1min
+OnUnitActiveSec=1min
+RandomizedDelaySec=5
 
 [Install]
 WantedBy=timers.target
