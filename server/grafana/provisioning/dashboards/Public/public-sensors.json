@@ -172,7 +172,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, CASE WHEN '${series}' = 'raw' THEN sr.temperature ELSE sr.temperature_cal END AS temperature\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Koti' AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, CASE WHEN '${series}' = 'raw' THEN a.temp_avg ELSE a.temp_avg_cal END AS temperature\nFROM sensor_readings_1min_cal a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Koti' AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, CASE WHEN '${series}' = 'raw' THEN sr.temperature ELSE sr.temperature_cal END AS temperature\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Koti' AND COALESCE(m.category, '') <> 'cold' AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, CASE WHEN '${series}' = 'raw' THEN a.temp_avg ELSE a.temp_avg_cal END AS temperature\nFROM sensor_readings_1min_cal a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Koti' AND COALESCE(m.category, '') <> 'cold' AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
         },
         {
           "refId": "B",
@@ -187,14 +187,66 @@
       ]
     },
     {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Cold",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT sr.\"time\", COALESCE(m.name, right(replace(sr.sensor_id, ':', ''), 4)) AS metric, CASE WHEN '${series}' = 'raw' THEN sr.temperature ELSE sr.temperature_cal END AS temperature\nFROM sensor_readings_cal sr JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(sr.\"time\") AND m.owner = 'mine' AND m.place = 'Koti' AND m.category = 'cold' AND ($__unixEpochTo() - $__unixEpochFrom()) <= 10800\nUNION ALL\nSELECT a.bucket, COALESCE(m.name, right(replace(a.sensor_id, ':', ''), 4)) AS metric, CASE WHEN '${series}' = 'raw' THEN a.temp_avg ELSE a.temp_avg_cal END AS temperature\nFROM sensor_readings_1min_cal a JOIN sensor_meta m USING (sensor_id)\nWHERE $__timeFilter(a.bucket) AND m.owner = 'mine' AND m.place = 'Koti' AND m.category = 'cold' AND ($__unixEpochTo() - $__unixEpochFrom()) > 10800\nORDER BY 1"
+        }
+      ]
+    },
+    {
       "id": 2,
       "type": "timeseries",
       "title": "Humidity",
       "gridPos": {
         "h": 9,
         "w": 12,
-        "x": 12,
-        "y": 0
+        "x": 0,
+        "y": 9
       },
       "datasource": {
         "type": "postgres",
@@ -245,7 +297,7 @@
       "gridPos": {
         "h": 9,
         "w": 12,
-        "x": 0,
+        "x": 12,
         "y": 9
       },
       "datasource": {
@@ -297,8 +349,8 @@
       "gridPos": {
         "h": 9,
         "w": 12,
-        "x": 12,
-        "y": 9
+        "x": 0,
+        "y": 18
       },
       "datasource": {
         "type": "postgres",
@@ -379,7 +431,7 @@
       "gridPos": {
         "h": 9,
         "w": 12,
-        "x": 0,
+        "x": 12,
         "y": 18
       },
       "datasource": {
@@ -431,8 +483,8 @@
       "gridPos": {
         "h": 9,
         "w": 12,
-        "x": 12,
-        "y": 18
+        "x": 0,
+        "y": 27
       },
       "datasource": {
         "type": "postgres",
@@ -483,7 +535,7 @@
       "gridPos": {
         "h": 9,
         "w": 12,
-        "x": 0,
+        "x": 12,
         "y": 27
       },
       "datasource": {
@@ -535,8 +587,8 @@
       "gridPos": {
         "h": 9,
         "w": 12,
-        "x": 12,
-        "y": 27
+        "x": 0,
+        "y": 36
       },
       "datasource": {
         "type": "postgres",
@@ -587,7 +639,7 @@
       "gridPos": {
         "h": 9,
         "w": 12,
-        "x": 0,
+        "x": 12,
         "y": 36
       },
       "datasource": {
@@ -639,8 +691,8 @@
       "gridPos": {
         "h": 9,
         "w": 12,
-        "x": 12,
-        "y": 36
+        "x": 0,
+        "y": 45
       },
       "datasource": {
         "type": "postgres",
@@ -692,7 +744,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 45
+        "y": 54
       },
       "datasource": {
         "type": "postgres",
@@ -744,7 +796,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 54
+        "y": 63
       },
       "datasource": {
         "type": "postgres",

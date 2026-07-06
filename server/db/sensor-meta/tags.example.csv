@@ -1,6 +1,7 @@
-sensor_id,name,owner,place,notes
-AA:BB:CC:DD:EE:01,Sauna,mine,Koti,example row — replace with your real MAC + name + placement
-AA:BB:CC:DD:EE:02,Makuuhuone,mine,Koti,
-AA:BB:CC:DD:EE:03,Ulko,mine,Vaunu,"owner=mine, place=Koti|Vaunu for your own tags"
-AA:BB:CC:DD:EE:04,,other,,"owner=other — a tag in range that isn't yours; name/place left blank"
-AA:BB:CC:DD:EE:05,Air,mine,Koti,Ruuvi Air (CO2/PM) — same table, no special handling
+sensor_id,name,owner,place,category,notes
+AA:BB:CC:DD:EE:01,Sauna,mine,Koti,,example row — replace with your real MAC + name + placement
+AA:BB:CC:DD:EE:02,Makuuhuone,mine,Koti,,
+AA:BB:CC:DD:EE:03,Ulko,mine,Vaunu,,"owner=mine, place=Koti|Vaunu for your own tags"
+AA:BB:CC:DD:EE:04,,other,,,"owner=other — a tag in range that isn't yours; name/place left blank"
+AA:BB:CC:DD:EE:05,Air,mine,Koti,,Ruuvi Air (CO2/PM) — same table, no special handling
+AA:BB:CC:DD:EE:06,Fridge,mine,Koti,cold,"category groups panels, e.g. 'cold' -> the Cold temperature panel"

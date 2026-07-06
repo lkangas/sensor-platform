@@ -22,16 +22,17 @@ PD=$(docker exec "$CTR" printenv POSTGRES_DB   2>/dev/null || echo "$PU")
 # tr -d '\r' tolerates a CSV saved with Windows line endings.
 {
   echo "BEGIN;"
-  echo "CREATE TEMP TABLE _stage (sensor_id text, name text, owner text, place text, notes text) ON COMMIT DROP;"
+  echo "CREATE TEMP TABLE _stage (sensor_id text, name text, owner text, place text, category text, notes text) ON COMMIT DROP;"
   echo "\\copy _stage FROM STDIN WITH (FORMAT csv, HEADER true)"
   tr -d '\r' < "$CSV"
   echo "\\."
   cat <<'SQL'
-INSERT INTO sensor_meta (sensor_id, name, owner, place, notes, updated_at)
+INSERT INTO sensor_meta (sensor_id, name, owner, place, category, notes, updated_at)
 SELECT upper(trim(sensor_id)),
        nullif(trim(name),  ''),
        nullif(trim(owner), ''),
        nullif(trim(place), ''),
+       nullif(trim(category), ''),
        nullif(trim(notes), ''),
        now()
 FROM _stage
@@ -40,6 +41,7 @@ ON CONFLICT (sensor_id) DO UPDATE SET
   name       = EXCLUDED.name,
   owner      = EXCLUDED.owner,
   place      = EXCLUDED.place,
+  category   = EXCLUDED.category,
   notes      = EXCLUDED.notes,
   updated_at = now();
 COMMIT;

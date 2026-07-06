@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS sensor_meta (
     name       TEXT,                       -- friendly name, e.g. 'Sauna' (private)
     owner      TEXT,                       -- category axis 1: 'mine' | 'other'
     place      TEXT,                       -- category axis 2: 'Koti' | 'Vaunu' (for owner='mine'); blank for others
+    category   TEXT,                       -- category axis 3: free-form panel grouping, e.g. 'cold' (fridge/freezer)
     notes      TEXT,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

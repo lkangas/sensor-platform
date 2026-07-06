@@ -24,6 +24,10 @@ Dashboards `LEFT JOIN sensor_meta` on `sensor_id` and display
    - `owner` — `mine` or `other` (category axis 1).
    - `place` — for your own tags, `Koti` or `Vaunu` (category axis 2); leave blank for
      others.
+   - `category` — optional free-form panel grouping (axis 3). Dashboards filter on it so
+     tag names never appear in the committed JSON and panels survive renames — e.g.
+     `cold` puts a fridge/freezer tag on the Koti "Cold" temperature panel (and out of
+     the main Temperature panel). Blank = ungrouped.
    - `notes` — optional free text.
    Leave a cell blank to store NULL; blanks fall back to the 4-char code in dashboards.
 
