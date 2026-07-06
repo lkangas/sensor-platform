@@ -692,6 +692,22 @@ ingestion contract").
 - **A physical weather station at the summer place** — still an option, via the same MQTT
   `decoded/#` path.
 
+## 10b. Phase 8b — Hue Bridge as an indoor auxiliary source (probed, not built)
+
+The home site has a Philips Hue Bridge; its motion sensors carry **temperature and
+illuminance** sensors — illuminance (lux) being a quantity nothing else on the platform
+measures — plus battery levels and light/plug state. Probe status (2026-07-06): the bridge
+is a v2 model with the modern **CLIP v2 API + server-sent event stream** confirmed live;
+pairing (a physical link-button press) and the inventory/cadence measurement are pending.
+Probe kit + findings live git-ignored in `docs/local/` (bridge identity and the API key are
+private, like `tags.csv`).
+
+Architecture when built: the bridge is LAN-only, so a small collector (SSE listener, not a
+poller — the bridge is a modest embedded device) runs on the **home edge node** and
+publishes `decoded/<site>/hue/<id>` like every other source; temperature/lux/battery map
+onto existing `sensor_readings` columns (`lux` finally gets used). Same ingestion contract,
+no schema change expected.
+
 ---
 
 ## 11. Operations & maintenance

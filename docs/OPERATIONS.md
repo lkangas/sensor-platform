@@ -30,7 +30,9 @@ Names live in the DB (`sensor_meta`), joined at query time — so a rename relab
 history instantly**, needs no dashboard edits, and never touches the public repo.
 
 1. On the operator's machine, edit `server/db/sensor-meta/tags.csv`
-   (columns: `sensor_id,name,owner,place,category,notes`).
+   (columns: `sensor_id,name,owner,place,category,notes`). Standard CSV rules: quote any
+   field that contains a comma (`…,other,,,"first seen 2026-07-04, listed 2026-07-06"`),
+   or the loader rejects the row with "extra data after last expected column".
 2. Copy it to the VPS and load (idempotent upsert; the CSV never stays on the VPS):
    ```bash
    scp server/db/sensor-meta/tags.csv you@vps.example.com:/tmp/tags.csv
