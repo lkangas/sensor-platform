@@ -14,3 +14,7 @@ topic write home/#
 
 user site-summer
 topic write summer/#
+
+# The VPS monitoring itself (host-metrics for source='host'); publishes only vps/#.
+user site-vps
+topic write vps/#
