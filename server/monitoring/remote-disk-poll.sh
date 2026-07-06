@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agentless disk-usage monitoring: SSH to each remote host, read `df` + /proc/loadavg,
-# and insert a partial sensor_readings row (source='host', disk_pct + cpu_load1) so the
+# and insert a partial sensor_readings row (source='host', disk_pct + cpu_load1 + mem_pct) so the
 # host shows on the Perf board's disk/load panels like any other node. Nothing is
 # installed on the remote box. Runs on a systemd timer on the platform VPS.
 #
@@ -16,12 +16,13 @@ for t in "${TARGETS[@]}"; do
   # shellcheck disable=SC2086
   set -- $t; site=$1; node=$2; dest=$3
   out=$(ssh -o BatchMode=yes -o ConnectTimeout=10 "$dest" \
-        'df --output=pcent / | tail -1 | tr -dc 0-9; echo; cut -d" " -f1 /proc/loadavg' 2>/dev/null) \
+        'df --output=pcent / | tail -1 | tr -dc 0-9; echo; cut -d" " -f1 /proc/loadavg; awk "/^MemTotal/{t=\$2}/^MemAvailable/{a=\$2}END{if(t)printf \"%.1f\",(t-a)/t*100}" /proc/meminfo' 2>/dev/null) \
     || { echo "remote-disk-poll: $dest unreachable" >&2; continue; }
   disk=$(printf '%s\n' "$out" | sed -n 1p)
   load=$(printf '%s\n' "$out" | sed -n 2p)
+  mem=$(printf  '%s\n' "$out" | sed -n 3p)
   [ -n "$disk" ] || { echo "remote-disk-poll: $dest no disk value" >&2; continue; }
   docker exec -i server-timescaledb-1 psql -U telegraf -d sensors -qtA -c \
-    "INSERT INTO sensor_readings(time,site,source,sensor_id,disk_pct,cpu_load1) VALUES (now(),'$site','host','$node',$disk,${load:-NULL});" \
-    && echo "remote-disk-poll: $site/$node disk=${disk}% load=${load}"
+    "INSERT INTO sensor_readings(time,site,source,sensor_id,disk_pct,cpu_load1,mem_pct) VALUES (now(),'$site','host','$node',$disk,${load:-NULL},${mem:-NULL});" \
+    && echo "remote-disk-poll: $site/$node disk=${disk}% load=${load} mem=${mem}%"
 done

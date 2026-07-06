@@ -2,9 +2,9 @@
 
 Disk-usage monitoring for hosts we don't want to install anything on (e.g. a VPS
 running someone else's app). A systemd timer on the platform VPS SSHes to each target,
-reads `df` + `/proc/loadavg`, and inserts a partial `sensor_readings` row
-(`source='host'`, `disk_pct` + `cpu_load1`) — so the host shows on the Perf board's
-disk/load panels like any other node. **Nothing runs on the remote box.**
+reads `df` + `/proc/loadavg` + `/proc/meminfo`, and inserts a partial `sensor_readings`
+row (`source='host'`, `disk_pct` + `cpu_load1` + `mem_pct`) — so the host shows on the Perf
+board's disk/load/memory panels like any other node. **Nothing runs on the remote box.**
 
 Contrast with `edge/host-metrics/`, which is the *agent* version (a publisher running on
 the host over MQTT, full metrics). Use the poller when the remote box must stay clean; use
