@@ -692,26 +692,41 @@ ingestion contract").
 - **A physical weather station at the summer place** — still an option, via the same MQTT
   `decoded/#` path.
 
-## 10b. Phase 8b — Hue Bridge as an indoor auxiliary source (probed, not built)
+## 10b. Phase 8b — Hue Bridge as an indoor auxiliary source — LIVE 2026-07-06
 
 The home site has a Philips Hue Bridge; its motion sensors carry **temperature and
 illuminance** sensors — illuminance (lux) being a quantity nothing else on the platform
-measures — plus battery levels and light/plug state. Probe status (2026-07-06): the bridge
-is a v2 model with the modern **CLIP v2 API + server-sent event stream** confirmed live;
-pairing (a physical link-button press) and the inventory/cadence measurement are pending.
-Probe kit + findings live git-ignored in `docs/local/` (bridge identity and the API key are
-private, like `tags.csv`).
-
-Architecture when built: the bridge is LAN-only, so a small collector (SSE listener, not a
-poller — the bridge is a modest embedded device) runs on the **home edge node** and
+measures — plus battery levels and light/plug state. **Live since 2026-07-06**
+(`source='hue'`): the bridge is a v2 model, paired over the modern **CLIP v2 API +
+server-sent event stream**. A small collector (`edge/hue-collector/` — an SSE listener,
+not a poller; the bridge is a modest embedded device) runs on the **home edge node** and
 publishes `<site>/hue/<device-uuid>` over the external MQTTS listener (host-metrics
-pattern; the external ACL only allows `<site>/#`). Temperature/lux map onto existing
-columns (`lux` finally gets used); motion/button events and battery-% need three new
-columns (draft migration 007 — the Telegraf JSON parser drops booleans, hence motion as
-0/1). **Collector DRAFTED** (`edge/hue-collector/`, 2026-07-06): event-driven with a
-snapshot heartbeat, one sensor_id per physical device, motion + button events included for
-automation analysis; light-state logging left as a marked extension point. Not deployed —
-pairing and the probe's verify-list (button/motion report field shapes) come first.
+pattern; the external ACL only allows `<site>/#`). Bridge identity + API key stay
+git-ignored in `docs/local/`, like `tags.csv`.
+
+One `sensor_id` per physical device (a motion sensor's motion/temp/lux/battery share an id,
+like a RuuviTag's metrics). Temperature/lux map onto existing columns (`lux` finally gets
+used); motion/button events + battery-% got three new columns (migration 007 — the Telegraf
+JSON parser drops booleans, hence motion as 0/1), and light/plug state — on/off, brightness,
+colour temperature (mirek) — three more (migration 008; the `LOG_LIGHTS=1` default).
+Probe-verified against the live bridge: button events carry no `control_id` (a startup
+resource-id→control map supplies it), the `*_report` field nesting, the lux formula, and the
+SSE framing. Light state is chatty (hundreds of events/min under dynamic scenes), so
+`LOG_LIGHTS=0` turns it off while keeping motion/buttons.
+
+## 10c. Phase 8c — SSH-exposure monitor — LIVE 2026-07-06
+
+Not a sensor but a source in the same shape: any node with its SSH port exposed can publish
+how much hostile traffic it draws, so the exposure shows up on a Grafana board next to the
+sensors. `edge/ssh-monitor/` is a **root** systemd service that each interval (default 60 s)
+reads journald and `fail2ban-client` (both root-only) and publishes `<site>/security/<node>`
+with `source='security'`: `ssh_failed` (bad-password attempts), `ssh_accepted` (real
+logins), `ssh_ips` (distinct attacking IPs), and fail2ban's `f2b_banned` /
+`f2b_banned_total`. Five new columns (migration 009); a **Security** board renders them.
+Like host-metrics (`source='host'`), it emits clean values and skips the decoder —
+publishing straight to `<site>/security/<node>`, no `decoded/` prefix. Live on the home node
+from 2026-07-06; the failed/IP/ban curves stay flat until a port is actually exposed to the
+internet, which is the point — the board turns "how much is out there?" into a graph.
 
 ---
 
@@ -900,8 +915,9 @@ Each milestone below is committed to Git as soon as its checkpoint passes (princ
       one run. *(script committed but NOT yet proven on a blank device — the second site
       was a flip of an existing node, not a from-scratch bootstrap)*
 - [ ] **M8 — Fleet & extras:** ~~second site added~~ *(done 2026-07-05)*; (Ansible +
-      Tailscale as sites grow); ~~weather source~~ *(done 2026-07-06 — FMI, §10)*;
-      backups running and test-restored *(the remaining substance of this milestone)*.
+      Tailscale as sites grow); ~~weather source~~ *(FMI, §10)*, ~~Hue source~~ *(§10b)*,
+      ~~SSH-exposure monitor~~ *(§10c)* *(all done 2026-07-06)*; backups running and
+      test-restored *(the remaining substance of this milestone)*.
 - [ ] **M9 — User manual:** a comprehensive but compact, easy-to-understand operator's
       manual for the everyday/occasional tasks the platform accumulates — e.g. renaming a
       tag (edit local `tags.csv` → load on the VPS), adding/moving a tag or site,
