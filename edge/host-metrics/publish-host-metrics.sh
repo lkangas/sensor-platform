@@ -17,6 +17,11 @@ fi
 INTERVAL="${HOST_METRICS_INTERVAL:-30}"
 NODE="${HOST_NODE:-$(hostname)}"   # containers see their own id; HOST_NODE overrides
 BASE="${SITE}/host/${NODE}"
+# Extra data disks to report as their own nodes: space-separated "label:mountpoint" pairs
+# (e.g. EXTRA_DISKS="ssd:/mnt/ssd"). Each publishes <site>/host/<node>-<label> {disk_pct}, so
+# it shows as its own series on the Perf board's disk panel. In the container build, the
+# mountpoint must be bind-mounted read-only at the same path (see docker-compose.yml).
+EXTRA_DISKS="${EXTRA_DISKS:-}"
 
 pub(){ mosquitto_pub -h "$MQTT_HOST" -p "${MQTT_PORT:-8883}" -u "$MQTT_USER" -P "$MQTT_PASS" \
         --capath /etc/ssl/certs -t "$1" -m "$2" || echo "host-metrics: publish failed ($1)" >&2; }
@@ -35,7 +40,8 @@ cpu_temp(){ local t; t=$(hwmon_temp coretemp "Package id 0"); [ -n "$t" ] && { e
   t=$(hwmon_temp cpu_thermal); [ -n "$t" ] && { echo "$t"; return; }
   [ -e /sys/class/thermal/thermal_zone0/temp ] && awk '{printf "%.1f",$1/1000}' /sys/class/thermal/thermal_zone0/temp; }
 mem_pct(){ awk '/^MemTotal/{t=$2}/^MemAvailable/{a=$2}END{if(t)printf "%.1f",(t-a)/t*100}' /proc/meminfo; }
-disk_pct(){ df -P / | awk 'NR==2{gsub("%","",$5);print $5}'; }
+disk_pct_of(){ df -P "$1" 2>/dev/null | awk 'NR==2{gsub("%","",$5);print $5}'; }
+disk_pct(){ disk_pct_of /; }
 cpu_mhz(){ for c in /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq; do cat "$c" 2>/dev/null; done \
              | awk '{s+=$1;n++}END{if(n)printf "%d",s/1000/n}'; }
 load1(){ cut -d' ' -f1 /proc/loadavg; }
@@ -67,6 +73,9 @@ while true; do
     v=${kv#*:}; [ -n "$v" ] && j="$j, \"${kv%%:*}\": $v"; done
   [ -n "$power" ] && j="$j, \"power_w\": $power"
   pub "$BASE" "$j}"
+  for d in $EXTRA_DISKS; do              # extra data disks -> their own <node>-<label> series
+    p=$(disk_pct_of "${d#*:}"); [ -n "$p" ] && pub "${BASE}-${d%%:*}" "{\"disk_pct\": $p}"
+  done
   for h in /sys/class/hwmon/hwmon*; do
     [ "$(cat "$h/name" 2>/dev/null)" = coretemp ] || continue
     for f in "$h"/temp*_input; do

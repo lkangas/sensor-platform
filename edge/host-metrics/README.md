@@ -46,6 +46,15 @@ Config knobs (env): `HOST_METRICS_INTERVAL` (default 30 s), `HOST_METRICS_ENV` (
 omit the Pi-only fields (`throttled`/`core_volt`) and add the x86 ones
 (`ssd_temp`/`power_w`/per-core temps) where the kernel exposes them.
 
+### Extra data disks
+By default only `/` is reported. To also track a data disk, set `EXTRA_DISKS` to
+space-separated `label:mountpoint` pairs, e.g. `EXTRA_DISKS="ssd:/mnt/ssd"`. Each publishes
+`<site>/host/<node>-<label>` carrying just `disk_pct`, so it lands as its own `sensor_id`
+(`<node>-ssd`) and shows as a separate line on the Perf board's disk panel — no dashboard
+change needed. In the **container** deploy the mountpoint isn't visible unless bind-mounted,
+so also set `SSD_MOUNT=/mnt/ssd` (see `docker-compose.yml`); the systemd deploy reads the
+host filesystem directly and needs only `EXTRA_DISKS`.
+
 **Container-deploy caveat:** in a container `hostname` is the random container id, so set
 `HOST_NODE` to the host's real name — **persistently**, in `edge/host-metrics/.env`
 (`HOST_NODE=<hostname>`). Without it, every container recreate mints a fresh

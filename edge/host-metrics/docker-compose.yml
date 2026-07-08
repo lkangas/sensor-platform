@@ -15,6 +15,12 @@ services:
       # PERSISTENTLY in this dir's .env (edge/host-metrics/.env: HOST_NODE=<hostname>) so every
       # `docker compose up` picks it up — a one-off HOST_NODE=... on the CLI is lost on recreate.
       HOST_NODE: ${HOST_NODE:-}
+      EXTRA_DISKS: ${EXTRA_DISKS:-}   # e.g. "ssd:/mnt/ssd" -> a <node>-ssd disk series
     env_file: ../.env            # SITE + MQTT creds (already present for the edge)
     volumes:
       - /sys:/sys:ro             # hwmon (temps), powercap (RAPL), cpufreq
+      # Optional extra data disk to report (e.g. an SSD). Bind-mount it read-only at the SAME
+      # path the host uses and list it in EXTRA_DISKS (both live in edge/host-metrics/.env):
+      #   SSD_MOUNT=/mnt/ssd  +  EXTRA_DISKS=ssd:/mnt/ssd
+      # Unset -> harmlessly self-maps /sys and the script skips it (EXTRA_DISKS empty).
+      - ${SSD_MOUNT:-/sys}:/mnt/ssd:ro
