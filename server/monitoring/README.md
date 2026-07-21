@@ -10,7 +10,10 @@ node. **Nothing runs on the remote box.**
 Contrast with `edge/host-metrics/`, which is the *agent* version (a publisher running on
 the host over MQTT, full metrics). Use the poller when the remote box must stay clean; use
 the agent when you want richer metrics and prefer outbound-only telemetry over granting the
-VPS inbound SSH.
+VPS inbound SSH. There is also an edge-side sibling, `edge/remote-host-poll/`: the same
+agentless idea, but run *from a site's edge node* for targets only reachable on that LAN
+(and tuned to cost the target almost nothing — SSH multiplexing, between-poll CPU deltas);
+it publishes over MQTT instead of inserting into the DB.
 
 ## Targets
 Edit the `TARGETS` array in `remote-disk-poll.sh`: `"<site> <sensor_id> <ssh-alias>"`. The

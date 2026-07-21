@@ -15,7 +15,7 @@ locations, credentials). Every recipe preserves that split.
 | Thing | Where | Committed? |
 |---|---|---|
 | Stack config (compose, telegraf, mosquitto, dashboards) | `server/…` | ✅ |
-| Edge publishers (BLE gateway, host metrics, Hue, SSH monitor) | `edge/…` code; per-node `.env` / `/etc/ssh-monitor.env` | ✅ code; ❌ the per-node `.env` secrets |
+| Edge publishers (BLE gateway, host metrics, remote host poll, Hue, SSH monitor) | `edge/…` code; per-node `.env` / `/etc/ssh-monitor.env` | ✅ code; ❌ the per-node `.env` secrets |
 | Tag names / owners / places / categories | `server/db/sensor-meta/tags.csv` → loaded into DB table `sensor_meta` | ❌ CSV is git-ignored, lives on the operator's machine |
 | Weather stations (which FMI station backs which site) | `server/fmi-weather/stations.json` on the VPS | ❌ git-ignored |
 | Secrets (DB/Grafana/MQTT passwords; Hue key) | `server/.env` on the VPS; MQTT users in `server/mosquitto/passwd`; edge `.env` per node | ❌ |
@@ -167,11 +167,13 @@ docker exec -i server-timescaledb-1 psql -U postgres -d sensors -c \
 ```
 
 Rough expectations by `source`: `ruuvi` ≈ one row per ~1–4 s each (dedupe removes
-re-broadcasts, so quiet Air-class devices legitimately produce fewer); `host` ~30 s;
-`fmi` one row per 10 min per station; `hue` bursty/event-driven with a snapshot heartbeat
-every `SNAPSHOT_INTERVAL` (~15 min); `security` one row per node per `SSH_MONITOR_INTERVAL`
-(~1 min). Hue and security are edge-node services — if their rows stop, check the service
-on the node (`journalctl -u ssh-monitor` / the Hue collector), not the VPS.
+re-broadcasts, so quiet Air-class devices legitimately produce fewer); `host` ~30 s
+(except SSH-polled nodes: ~1 min from the VPS poller, `REMOTE_POLL_INTERVAL` ≈ 2 min from
+`edge/remote-host-poll/`); `fmi` one row per 10 min per station; `hue` bursty/event-driven
+with a snapshot heartbeat every `SNAPSHOT_INTERVAL` (~15 min); `security` one row per node
+per `SSH_MONITOR_INTERVAL` (~1 min). Hue, security and the remote host poll are edge-node
+services — if their rows stop, check the service on the node (`journalctl -u ssh-monitor` /
+the Hue collector / `systemctl --user status remote-host-poll`), not the VPS.
 
 ## 9. Backup / restore the private bits
 

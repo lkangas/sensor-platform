@@ -1,0 +1,14 @@
+[Unit]
+Description=Agentless remote host metrics: SSH-poll weak targets, publish to MQTT (source=host)
+After=network-online.target
+
+[Service]
+# Runs as a systemd USER service so %h resolves to the repo owner's home and the
+# poll uses that user's ~/.ssh (aliases, key, known_hosts) natively — no
+# hard-coded user/path in the repo. Install: see README.md.
+ExecStart=%h/sensor-platform/edge/remote-host-poll/poll-remote-hosts.sh
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=default.target
